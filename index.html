@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kalkulator Angka Kredit Jabatan Fungsional</title>
-<!-- Firebase SDK (compat) - dipakai untuk penyimpanan data terpusat (lihat README.md) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
@@ -26,6 +25,11 @@ body{
 }
 .storage-banner.central{ background:#eafaf0; color:#1e7d4b; }
 .storage-banner.local{ background:#fff8ec; color:#a6772c; }
+.period-preview{
+  margin:-6px 0 16px; padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600;
+}
+.period-preview.ok{ background:#eef6fc; color:#1b4f72; border:1px solid #c7e0f0; }
+.period-preview.warn{ background:#fdecea; color:#8a3a2b; border:1px solid #f3c3bd; }
 header.topbar{
   background:linear-gradient(135deg,var(--navy),var(--navy2));
   color:#fff; padding:18px 28px; display:flex; align-items:center; gap:16px;
@@ -143,13 +147,13 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       <h2>Data Pengusul</h2>
       <div class="sub">Isi data sesuai usulan Penetapan Angka Kredit (PAK).</div>
       <div class="grid">
-        <div class="field"><label>Nama</label><input type="text" id="f_nama" placeholder="Nama pengusul"></div>
-        <div class="field"><label>Jenis Pengangkatan</label><select id="f_jenis"></select></div>
-        <div class="field"><label>Ijazah Terakhir</label><select id="f_ijazah"></select></div>
-        <div class="field"><label>Jabatan Saat Ini</label><input type="text" id="f_jabatan" list="jabatanOptions" placeholder="mis. Pelaksana, CPNS, Pengawas..."></div>
+        <div class="field"><label>Nama</label><input type="text" id="f_nama" placeholder="Nama pengusul"><div class="hint">Nama pegawai yang diusulkan/dihitung Angka Kreditnya.</div></div>
+        <div class="field"><label>Jenis Pengangkatan</label><select id="f_jenis"></select><div class="hint">Pilih sesuai jalur pengangkatan JF: Pengangkatan Pertama (dari CPNS), Perpindahan (dari jabatan lain), Pengangkatan Kembali (setelah diberhentikan), atau Penyetaraan.</div></div>
+        <div class="field"><label>Ijazah Terakhir</label><select id="f_ijazah"></select><div class="hint">Ijazah pendidikan formal terakhir yang diakui, dipakai untuk cek status "pangkat puncak" dan tabel Penyetaraan.</div></div>
+        <div class="field"><label>Jabatan Saat Ini</label><input type="text" id="f_jabatan" list="jabatanOptions" placeholder="mis. Pelaksana, CPNS, Pengawas..."><div class="hint">Jabatan yang diduduki SEBELUM diangkat ke Jabatan Fungsional ini (mis. CPNS, Pelaksana, Pengawas, Administrator).</div></div>
         <datalist id="jabatanOptions"></datalist>
-        <div class="field"><label>Jenjang Dituju</label><select id="f_jenjang"></select></div>
-        <div class="field"><label>Golongan Saat Ini</label><select id="f_golongan"></select></div>
+        <div class="field"><label>Jenjang Dituju</label><select id="f_jenjang"></select><div class="hint">Jenjang Jabatan Fungsional yang akan diduduki (Ahli Pertama, Ahli Muda, dst).</div></div>
+        <div class="field"><label>Golongan Saat Ini</label><select id="f_golongan"></select><div class="hint">Golongan ruang (pangkat) yang dimiliki pegawai saat ini, mis. III/a.</div></div>
         <div class="field">
           <label>Golongan Terendah di Jenjangnya?</label>
           <select id="f_gol_terendah"><option value="Tidak">Tidak</option><option value="Ya">Ya</option></select>
@@ -169,18 +173,20 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       <div class="two-col">
         <div>
           <div class="row">
-            <div class="field"><label>TMT Golongan — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_tmt_bulan"></div>
-            <div class="field"><label>TMT Golongan — Tahun</label><input type="number" id="f_tmt_tahun"></div>
+            <div class="field"><label>TMT Golongan — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_tmt_bulan"><div class="hint">Bulan mulai berlaku golongan saat ini.</div></div>
+            <div class="field"><label>TMT Golongan — Tahun</label><input type="number" id="f_tmt_tahun"><div class="hint">Tahun mulai berlaku golongan saat ini, mis. 2022.</div></div>
           </div>
         </div>
         <div>
           <div class="row">
-            <div class="field"><label>Dihitung Sampai — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_sampai_bulan"></div>
-            <div class="field"><label>Dihitung Sampai — Tahun</label><input type="number" id="f_sampai_tahun"></div>
+            <div class="field"><label>Dihitung Sampai — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_sampai_bulan"><div class="hint">Bulan terakhir periode yang ingin dihitung AK-nya (biasanya bulan usulan).</div></div>
+            <div class="field"><label>Dihitung Sampai — Tahun</label><input type="number" id="f_sampai_tahun"><div class="hint">Tahun terakhir periode yang ingin dihitung AK-nya.</div></div>
           </div>
         </div>
       </div>
     </div>
+
+    <div id="periodePreview" class="period-preview" style="display:none"></div>
 
     <div class="card">
       <h2>Predikat Kinerja (dalam bulan)</h2>
@@ -400,6 +406,63 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 
   <!-- ============ BANTUAN ============ -->
   <section id="viewBantuan" class="view">
+    <div class="card">
+      <h2>📖 Panduan Mengisi Kalkulator</h2>
+      <div class="sub">Langkah demi langkah untuk pengguna biasa (tab Kalkulator).</div>
+      <ol style="padding-left:20px;line-height:1.9">
+        <li><b>Nama</b> — nama pegawai yang dihitung Angka Kreditnya.</li>
+        <li><b>Jenis Pengangkatan</b> — pilih salah satu:
+          <ul style="margin-top:4px">
+            <li><i>Pengangkatan Pertama</i> — pegawai baru (CPNS) yang pertama kali diangkat ke Jabatan Fungsional.</li>
+            <li><i>Perpindahan</i> — pegawai pindah dari jabatan lain (mis. Pelaksana, Pengawas) ke Jabatan Fungsional.</li>
+            <li><i>Pengangkatan Kembali</i> — pegawai yang sebelumnya diberhentikan dari JF, lalu diangkat kembali.</li>
+            <li><i>Penyetaraan</i> — pengangkatan lewat mekanisme penyetaraan jabatan (biasanya dari jabatan administrasi).</li>
+          </ul>
+        </li>
+        <li><b>Ijazah Terakhir</b>, <b>Jabatan Saat Ini</b>, <b>Jenjang Dituju</b>, <b>Golongan Saat Ini</b> — isi
+        sesuai data pegawai. "Jabatan Saat Ini" adalah jabatan SEBELUM pindah ke JF (bukan nama JF-nya).</li>
+        <li><b>Golongan Terendah di Jenjangnya?</b> — pilih "Ya" kalau golongan pegawai adalah golongan paling
+        rendah yang mungkin untuk jenjang JF tersebut (cek Permen PAN RB JF terkait bila ragu). Ini menentukan
+        apakah pegawai mendapat AK Dasar atau tidak.</li>
+        <li><b>Skema AK Dasar</b> — biarkan "(otomatis sesuai jalur)" kecuali Anda tahu JF ini memakai skema
+        khusus (misalnya JF yang jenjangnya mentok di Ahli Madya, bukan sampai Ahli Utama). Admin bisa menambah
+        skema baru di tab Referensi.</li>
+        <li><b>TMT Golongan</b> dan <b>Dihitung Sampai</b> — isi bulan &amp; tahun. Begitu keempatnya terisi,
+        akan muncul kotak biru menunjukkan <b>berapa total bulan</b> yang harus dibagi ke kolom Predikat Kinerja
+        di bawahnya — pakai angka itu sebagai acuan.</li>
+        <li><b>Predikat Kinerja (dalam bulan)</b> — pecah total bulan dari kotak biru tadi ke 5 kategori sesuai
+        riwayat penilaian kinerja pegawai pada periode tersebut. Contoh: kalau totalnya 24 bulan, dan 12 bulan
+        pertama predikat "Baik" lalu 12 bulan berikutnya "Sangat Baik", isi Baik=12, Sangat Baik=12, sisanya 0.
+        Jumlah kelima kolom <b>harus persis sama</b> dengan total bulan yang ditampilkan.</li>
+        <li>Klik <b>Hitung Angka Kredit</b> untuk melihat hasilnya, lengkap dengan rincian perhitungan dan
+        catatan/peringatan bila ada. Klik <b>Simpan ke Riwayat</b> untuk menyimpan hasilnya (tersimpan di
+        perangkat Anda sendiri, tidak dibagikan ke pengguna lain).</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>🛠 Panduan untuk Admin</h2>
+      <div class="sub">Cara mengelola tabel referensi &amp; aturan kustom saat ada regulasi baru atau kombinasi yang belum tercakup.</div>
+      <ol style="padding-left:20px;line-height:1.9">
+        <li>Buka tab <b>"⚙ Admin: Tabel Referensi"</b> atau <b>"⚙ Admin: Aturan Kustom"</b> — akan diminta PIN
+        Admin. PIN bawaan <code class="k">1234</code>, segera ganti lewat kartu "Ubah PIN Admin" setelah pertama
+        kali masuk.</li>
+        <li><b>Kapan harus ubah Tabel Referensi:</b> saat ada regulasi baru yang mengubah Norma AK Tahunan, AK
+        Dasar, koefisien predikat kinerja, atau saat menemukan kombinasi Jabatan/Golongan/Jenjang yang belum
+        terdaftar (biasanya ditandai status "Perlu Aturan Kustom" pada hasil perhitungan seseorang).</li>
+        <li><b>Kapan harus pakai Aturan Kustom, bukan edit tabel:</b> untuk kasus khusus/kebijakan internal
+        instansi yang sifatnya pengecualian, bukan aturan umum — misalnya kesepakatan khusus untuk satu pegawai
+        atau satu skenario yang tidak diatur regulasi resmi.</li>
+        <li>Gunakan tombol <b>"🔍 Jalankan Uji Cakupan"</b> di tab Referensi untuk melihat kombinasi mana saja
+        yang belum bisa dihitung otomatis — jalankan ini setiap kali menambah data JF baru.</li>
+        <li>Setelah mengubah data, klik <b>"💾 Simpan Semua Perubahan"</b> — perubahan akan langsung terlihat
+        oleh <b>semua orang</b> yang membuka link kalkulator ini (lihat banner status Mode Terpusat/Lokal di
+        bagian atas halaman).</li>
+        <li>Gunakan <b>"Ekspor Konfigurasi (JSON)"</b> secara berkala sebagai cadangan, terutama sebelum
+        melakukan perubahan besar — supaya bisa dikembalikan lewat "Impor Konfigurasi" bila terjadi kesalahan.</li>
+      </ol>
+    </div>
+
     <div class="card">
       <h2>Tentang Perhitungan Ini</h2>
       <p>Aplikasi ini menerjemahkan logika perhitungan pada berkas <b>KALKULATOR - MASTER.xlsx</b> ke dalam
@@ -679,30 +742,10 @@ function akDasarFromSkema(skemaKey, golongan){
 }
 
 /* ---------------- CORE ENGINE ---------------- */
-function calcAK(inp){
-  const notes = [];
+/* Menghitung Masa Kerja Golongan & periode konversi yang diakui.
+   Dipakai baik oleh calcAK() maupun oleh pratinjau langsung di form (updateLivePreview). */
+function computeRecognizedPeriod(inp){
   const warn = [];
-
-  const BJ = CFG.jenjangCode[inp.jenjangDituju];
-  if(BJ==null) warn.push(`Jenjang dituju "${inp.jenjangDituju}" tidak dikenali di tabel referensi (Kode Jenjang).`);
-  const BK = (BJ!=null && BJ>3) ? "Keahlian" : "Keterampilan";
-  const pangkatTable = BK==="Keahlian" ? CFG.pangkatKeahlian : CFG.pangkatKeterampilan;
-  const pInfo = pangkatTable[inp.golonganSaatIni];
-  const BL = pInfo ? pInfo.code : null;
-  if(BL==null) warn.push(`Golongan "${inp.golonganSaatIni}" tidak terdaftar pada tabel Kode Pangkat jalur ${BK}.`);
-
-  let BM = "TIDAK DIKETAHUI";
-  if(BJ!=null && BL!=null) BM = BJ===BL ? "J=P" : (BJ>BL ? "J>P" : "J<P");
-
-  const jabatanKey = (inp.jabatanSaatIni||"").trim();
-  const BN = BK==="Keahlian"
-    ? `${jabatanKey},${inp.jenjangDituju}`
-    : `${jabatanKey},${inp.jenjangDituju},${inp.golonganSaatIni}`;
-  const BO = CFG.cocokTable[BN] || "TIDAK COCOK";
-  const BP = `${jabatanKey}/${inp.golonganSaatIni}/${inp.jenjangDituju}`;
-  const CE = `${inp.jenisPengangkatan},${BM}`;
-
-  // Masa Kerja Golongan total (sejak TMT s.d. periode dihitung)
   const tmtBulan = num(inp.tmtBulan), tmtTahun = num(inp.tmtTahun);
   const sBulan = num(inp.sampaiBulan), sTahun = num(inp.sampaiTahun);
   const Z = (sTahun - tmtTahun) * 12;
@@ -715,7 +758,6 @@ function calcAK(inp){
     warn.push("Rentang tanggal tidak valid: TMT Golongan berada setelah periode yang ingin dihitung.");
   }
 
-  // Status Kepangkatan (pangkat puncak / normal) - hanya berlaku untuk Perpindahan
   let AQ = "";
   if(inp.jenisPengangkatan === "Perpindahan"){
     const AP = `${inp.ijazah},${inp.golonganSaatIni}`;
@@ -743,6 +785,36 @@ function calcAK(inp){
   const BI = sBulan < 12 ? (sTahun - AYyear + 1) : (sTahun - AYyear);
 
   const periodeText = `${monthName(AVmonth)} ${AYyear} - ${monthName(sBulan)} ${sTahun}`;
+
+  return { AL, AM, AN, mkgText, AQ, windowYears, BF, BG, BH, BI, periodeText, warn };
+}
+
+function calcAK(inp){
+  const notes = [];
+  const warn = [];
+
+  const BJ = CFG.jenjangCode[inp.jenjangDituju];
+  if(BJ==null) warn.push(`Jenjang dituju "${inp.jenjangDituju}" tidak dikenali di tabel referensi (Kode Jenjang).`);
+  const BK = (BJ!=null && BJ>3) ? "Keahlian" : "Keterampilan";
+  const pangkatTable = BK==="Keahlian" ? CFG.pangkatKeahlian : CFG.pangkatKeterampilan;
+  const pInfo = pangkatTable[inp.golonganSaatIni];
+  const BL = pInfo ? pInfo.code : null;
+  if(BL==null) warn.push(`Golongan "${inp.golonganSaatIni}" tidak terdaftar pada tabel Kode Pangkat jalur ${BK}.`);
+
+  let BM = "TIDAK DIKETAHUI";
+  if(BJ!=null && BL!=null) BM = BJ===BL ? "J=P" : (BJ>BL ? "J>P" : "J<P");
+
+  const jabatanKey = (inp.jabatanSaatIni||"").trim();
+  const BN = BK==="Keahlian"
+    ? `${jabatanKey},${inp.jenjangDituju}`
+    : `${jabatanKey},${inp.jenjangDituju},${inp.golonganSaatIni}`;
+  const BO = CFG.cocokTable[BN] || "TIDAK COCOK";
+  const BP = `${jabatanKey}/${inp.golonganSaatIni}/${inp.jenjangDituju}`;
+  const CE = `${inp.jenisPengangkatan},${BM}`;
+
+  const periode = computeRecognizedPeriod(inp);
+  warn.push(...periode.warn);
+  const { AL, mkgText, BF, BG, BH, BI, periodeText } = periode;
 
   const S = num(inp.bulanButuhPerbaikan), T = num(inp.bulanBaik), U = num(inp.bulanSangatBaik);
   const K = num(inp.bulanKurang), SK = num(inp.bulanSangatKurang);
@@ -1537,6 +1609,34 @@ function renderUjiCakupanResult(rows, okCount, warnCount, badCount){
   el.innerHTML = html;
 }
 
+function updateLivePreview(){
+  const el = document.getElementById('periodePreview');
+  if(!el) return;
+  const inp = {
+    jenisPengangkatan: val('f_jenis'),
+    ijazah: val('f_ijazah'),
+    golonganSaatIni: val('f_golongan'),
+    tmtBulan: val('f_tmt_bulan'),
+    tmtTahun: val('f_tmt_tahun'),
+    sampaiBulan: val('f_sampai_bulan'),
+    sampaiTahun: val('f_sampai_tahun'),
+  };
+  const lengkap = inp.jenisPengangkatan && inp.golonganSaatIni && inp.tmtBulan && inp.tmtTahun && inp.sampaiBulan && inp.sampaiTahun;
+  if(!lengkap){ el.innerHTML = ''; el.style.display = 'none'; return; }
+  try{
+    const r = computeRecognizedPeriod(inp);
+    if(r.warn && r.warn.length){
+      el.innerHTML = `⚠ ${escapeHtml(r.warn[0])}`;
+      el.style.display = 'block';
+      el.className = 'period-preview warn';
+      return;
+    }
+    el.innerHTML = `📅 Periode yang dapat dikonversi: <b>${r.periodeText}</b> — total <b>${r.BF} bulan</b> (${r.BG} Tahun ${r.BH} Bulan). Isi total kolom predikat kinerja di bawah supaya berjumlah <b>${r.BF}</b>.`;
+    el.style.display = 'block';
+    el.className = 'period-preview ok';
+  }catch(e){ el.innerHTML=''; el.style.display='none'; }
+}
+
 /* ---------------- UI HELPERS ---------------- */
 function toast(msg){
   const t = document.getElementById('toast');
@@ -1601,6 +1701,11 @@ async function initApp(){
   renderHistory();
   renderRefTables();
   renderCustomRules();
+  ['f_jenis','f_ijazah','f_golongan','f_tmt_bulan','f_tmt_tahun','f_sampai_bulan','f_sampai_tahun'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', updateLivePreview);
+    if(el) el.addEventListener('change', updateLivePreview);
+  });
   document.querySelectorAll('nav.tabs button').forEach(b=>{
     b.addEventListener('click', async ()=>{
       const tab = b.dataset.tab;
