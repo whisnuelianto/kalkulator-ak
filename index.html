@@ -168,19 +168,20 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
     </div>
 
     <div class="card">
-      <h2>Masa Kerja Golongan (MKG)</h2>
-      <div class="sub">TMT Golongan saat ini, dan sampai kapan AK akan dihitung.</div>
+      <h2 id="mkgTitle">Masa Kerja Golongan (MKG)</h2>
+      <div class="sub" id="mkgSub">TMT Golongan saat ini, dan sampai kapan AK akan dihitung.</div>
+      <div id="mkgContextHint" class="period-preview" style="display:none;margin-top:0;margin-bottom:14px"></div>
       <div class="two-col">
         <div>
           <div class="row">
-            <div class="field"><label>TMT Golongan — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_tmt_bulan"><div class="hint">Bulan mulai berlaku golongan saat ini.</div></div>
-            <div class="field"><label>TMT Golongan — Tahun</label><input type="number" id="f_tmt_tahun"><div class="hint">Tahun mulai berlaku golongan saat ini, mis. 2022.</div></div>
+            <div class="field"><label id="lbl_tmt">TMT Golongan — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_tmt_bulan"><div class="hint" id="hint_tmt_bulan">Bulan mulai berlaku golongan saat ini.</div></div>
+            <div class="field"><label>TMT Golongan — Tahun</label><input type="number" id="f_tmt_tahun"><div class="hint" id="hint_tmt_tahun">Tahun mulai berlaku golongan saat ini, mis. 2022.</div></div>
           </div>
         </div>
         <div>
           <div class="row">
-            <div class="field"><label>Dihitung Sampai — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_sampai_bulan"><div class="hint">Bulan terakhir periode yang ingin dihitung AK-nya (biasanya bulan usulan).</div></div>
-            <div class="field"><label>Dihitung Sampai — Tahun</label><input type="number" id="f_sampai_tahun"><div class="hint">Tahun terakhir periode yang ingin dihitung AK-nya.</div></div>
+            <div class="field"><label id="lbl_sampai">Dihitung Sampai — Bulan (1-12)</label><input type="number" min="1" max="12" id="f_sampai_bulan"><div class="hint" id="hint_sampai_bulan">Bulan terakhir periode yang ingin dihitung AK-nya (biasanya bulan usulan).</div></div>
+            <div class="field"><label>Dihitung Sampai — Tahun</label><input type="number" id="f_sampai_tahun"><div class="hint" id="hint_sampai_tahun">Tahun terakhir periode yang ingin dihitung AK-nya.</div></div>
           </div>
         </div>
       </div>
@@ -1108,6 +1109,8 @@ function loadHistoryToForm(idx){
   document.getElementById('f_s').value = i.bulanButuhPerbaikan||'';
   document.getElementById('f_t').value = i.bulanBaik||'';
   document.getElementById('f_u').value = i.bulanSangatBaik||'';
+  updateJenisContext();
+  updateLivePreview();
   hitung();
 }
 async function hapusRiwayat(idx){
@@ -1609,6 +1612,86 @@ function renderUjiCakupanResult(rows, okCount, warnCount, badCount){
   el.innerHTML = html;
 }
 
+function updateJenisContext(){
+  const jenis = val('f_jenis');
+  const titleEl = document.getElementById('mkgTitle');
+  const subEl = document.getElementById('mkgSub');
+  const lblTmt = document.getElementById('lbl_tmt');
+  const lblSampai = document.getElementById('lbl_sampai');
+  const hintTmtB = document.getElementById('hint_tmt_bulan');
+  const hintTmtT = document.getElementById('hint_tmt_tahun');
+  const hintSampaiB = document.getElementById('hint_sampai_bulan');
+  const hintSampaiT = document.getElementById('hint_sampai_tahun');
+  const ctxEl = document.getElementById('mkgContextHint');
+  if(!titleEl) return;
+
+  const presets = {
+    "Perpindahan": {
+      title: "Masa Kerja Golongan (MKG)",
+      sub: "TMT Golongan pada jabatan SEBELUM pindah ke Jabatan Fungsional, dan sampai kapan AK akan dihitung.",
+      lblTmt: "TMT Golongan Saat Ini — Bulan (1-12)",
+      lblSampai: "Dihitung Sampai — Bulan (1-12)",
+      hintTmtB: "Bulan mulai berlaku golongan yang dipegang sebelum pindah ke JF.",
+      hintTmtT: "Tahun mulai berlaku golongan tersebut.",
+      hintSampaiB: "Bulan usulan pengangkatan ke Jabatan Fungsional.",
+      hintSampaiT: "Tahun usulan pengangkatan ke Jabatan Fungsional.",
+      ctx: null
+    },
+    "Pengangkatan Pertama": {
+      title: "Masa Kerja Golongan (MKG)",
+      sub: "TMT Golongan sejak CPNS, sampai kapan AK akan dihitung.",
+      lblTmt: "TMT Golongan (CPNS) — Bulan (1-12)",
+      lblSampai: "Dihitung Sampai — Bulan (1-12)",
+      hintTmtB: "Bulan mulai berlaku golongan sejak diangkat CPNS.",
+      hintTmtT: "Tahun mulai berlaku golongan sejak diangkat CPNS.",
+      hintSampaiB: "Bulan diangkat definitif ke dalam Jabatan Fungsional.",
+      hintSampaiT: "Tahun diangkat definitif ke dalam Jabatan Fungsional.",
+      ctx: null
+    },
+    "Pengangkatan Kembali": {
+      title: "Masa Kepangkatan Sebelum Diberhentikan",
+      sub: "Bukan golongan saat ini — ini golongan/pangkat TERAKHIR yang dipegang SEBELUM diberhentikan dari Jabatan Fungsional.",
+      lblTmt: "TMT Golongan Terakhir (sebelum diberhentikan) — Bulan (1-12)",
+      lblSampai: "Sampai Diangkat Kembali — Bulan (1-12)",
+      hintTmtB: "Bulan mulai berlaku golongan/pangkat terakhir yang dipegang sebelum diberhentikan dari JF (bukan golongan sekarang).",
+      hintTmtT: "Tahun mulai berlaku golongan/pangkat terakhir tersebut.",
+      hintSampaiB: "Bulan diangkat KEMBALI ke dalam Jabatan Fungsional.",
+      hintSampaiT: "Tahun diangkat KEMBALI ke dalam Jabatan Fungsional.",
+      ctx: "ℹ Sesuai Pasal 24 Perka BKN No.3/2023: dihitung dari predikat kinerja terhitung mulai TMT pangkat terakhir sampai diangkat kembali, ditambah AK Dasar. Jika masa tersebut lebih dari 4 tahun, konversi tetap dibatasi maksimal 4 tahun (otomatis dihitung sistem)."
+    },
+    "Penyetaraan": {
+      title: "Masa Kepangkatan (untuk Tabel Penyetaraan)",
+      sub: "TMT Golongan/pangkat pada jabatan administrasi saat ini, sampai kapan/tanggal penyetaraan dilakukan.",
+      lblTmt: "TMT Golongan Saat Ini — Bulan (1-12)",
+      lblSampai: "Sampai Tanggal Penyetaraan — Bulan (1-12)",
+      hintTmtB: "Bulan mulai berlaku golongan/pangkat pada jabatan administrasi saat ini.",
+      hintTmtT: "Tahun mulai berlaku golongan/pangkat tersebut.",
+      hintSampaiB: "Bulan pengangkatan lewat mekanisme penyetaraan jabatan.",
+      hintSampaiT: "Tahun pengangkatan lewat mekanisme penyetaraan jabatan.",
+      ctx: "ℹ AK Penyetaraan dilihat dari tabel Golongan/Pendidikan/Masa Kepangkatan (Lampiran II angka 5) — sistem otomatis menghitung berapa lama masa kepangkatan dari TMT sampai tanggal penyetaraan untuk mencocokkan ke tabel tersebut."
+    },
+  };
+  const p = presets[jenis];
+  if(!p){
+    titleEl.textContent = "Masa Kerja Golongan (MKG)";
+    subEl.textContent = "TMT Golongan saat ini, dan sampai kapan AK akan dihitung.";
+    if(ctxEl){ ctxEl.style.display='none'; }
+    return;
+  }
+  titleEl.textContent = p.title;
+  subEl.textContent = p.sub;
+  if(lblTmt) lblTmt.textContent = p.lblTmt;
+  if(lblSampai) lblSampai.textContent = p.lblSampai;
+  if(hintTmtB) hintTmtB.textContent = p.hintTmtB;
+  if(hintTmtT) hintTmtT.textContent = p.hintTmtT;
+  if(hintSampaiB) hintSampaiB.textContent = p.hintSampaiB;
+  if(hintSampaiT) hintSampaiT.textContent = p.hintSampaiT;
+  if(ctxEl){
+    if(p.ctx){ ctxEl.textContent = p.ctx; ctxEl.style.display = 'block'; ctxEl.className = 'period-preview ok'; }
+    else { ctxEl.style.display = 'none'; }
+  }
+}
+
 function updateLivePreview(){
   const el = document.getElementById('periodePreview');
   if(!el) return;
@@ -1706,6 +1789,9 @@ async function initApp(){
     if(el) el.addEventListener('input', updateLivePreview);
     if(el) el.addEventListener('change', updateLivePreview);
   });
+  const fJenisEl = document.getElementById('f_jenis');
+  if(fJenisEl) fJenisEl.addEventListener('change', updateJenisContext);
+  updateJenisContext();
   document.querySelectorAll('nav.tabs button').forEach(b=>{
     b.addEventListener('click', async ()=>{
       const tab = b.dataset.tab;
