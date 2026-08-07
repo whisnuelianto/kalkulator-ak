@@ -164,6 +164,16 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
           <select id="f_skema"></select>
           <div class="hint">Sesuaikan dengan rentang jenjang JF ini (lihat Lampiran II angka 2, Perka BKN No.3/2023). Kosongkan untuk otomatis.</div>
         </div>
+        <div class="field" id="fieldSusulan" style="display:none">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="f_susulan" style="width:16px;height:16px;margin:0">
+            Kenaikan Jenjang Susulan (dari pengangkatan awal J≠P)
+          </label>
+          <div class="hint">Centang bila pegawai ini dulu diangkat ke JF pada jenjang yang tidak sesuai golongannya
+          (J≠P), dan sekarang jenjangnya dinaikkan menyusul golongan. AK tahap ini dihitung dari masa kerja golongan
+          <b>sebelum pertama kali diangkat ke JF</b> — bukan dari periode sekarang. Praktik ini dikonfirmasi ke BKN,
+          tidak diatur eksplisit di Perka BKN No.3/2023.</div>
+        </div>
       </div>
     </div>
 
@@ -283,6 +293,15 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
     <div class="card">
       <h2>Norma AK Tahunan per Jenjang</h2>
       <div id="refNorma"></div>
+    </div>
+
+    <div class="card">
+      <h2>Kebutuhan Kumulatif Jenjang (Pasal 21)</h2>
+      <div class="sub">AK Kumulatif yang dibutuhkan untuk naik dari jenjang ini ke jenjang berikutnya. Dipakai
+      untuk kasus Penyetaraan dengan golongan lebih tinggi dari jenjang (J&lt;P) — lihat SE BKN No.9/2024 bagian
+      5.c.2.a. Catatan: Pasal 21 punya pengecualian untuk beberapa titik awal (mis. Terampil mulai II/c=40,
+      Ahli Muda mulai III/b=50) — sesuaikan manual bila JF ini termasuk pengecualian tersebut.</div>
+      <div id="refKebutuhanJenjang"></div>
     </div>
 
     <div class="card">
@@ -439,6 +458,9 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
         <li>Klik <b>Hitung Angka Kredit</b> untuk melihat hasilnya, lengkap dengan rincian perhitungan dan
         catatan/peringatan bila ada. Klik <b>Simpan ke Riwayat</b> untuk menyimpan hasilnya (tersimpan di
         perangkat Anda sendiri, tidak dibagikan ke pengguna lain).</li>
+        <li><b>Kenaikan Jenjang Susulan</b> (khusus Perpindahan) — centang kotak ini bila pegawai dulu diangkat
+        ke JF pada jenjang yang <i>tidak</i> sesuai golongannya (Jabatan≠Jenjang), dan sekarang jenjangnya
+        dinaikkan menyusul golongan. Lihat penjelasan detail di bagian "Tentang Perhitungan Ini" di bawah.</li>
       </ol>
     </div>
 
@@ -479,6 +501,53 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       Anda mengalami ini, hasil akan menampilkan status <span class="pill warn">Perlu Aturan Kustom</span>.
       Tambahkan datanya di tab Referensi (jika berupa data tabel), atau buat <b>Aturan Kustom</b> di tab tersebut
       untuk kasus-kasus khusus.</p>
+      <h2 style="margin-top:20px">Penyetaraan dengan Golongan Tidak Sesuai Jenjang</h2>
+      <p>Berdasarkan SE BKN No.9/2024 bagian 5.c.2, untuk pengangkatan lewat <b>Penyetaraan</b> dengan golongan
+      ruang tidak sesuai rentang jenjang jabatannya, berlaku dua mekanisme berbeda:</p>
+      <ul>
+        <li><b>Golongan lebih tinggi dari jenjang (J&lt;P)</b> — contoh: golongan IV/a diangkat ke jenjang Ahli
+        Muda (padahal IV/a secara alami setara Ahli Madya). AK dari tabel Penyetaraan (mis. 54) diberikan
+        sebagai <b>pemenuhan penuh</b> kebutuhan kumulatif jenjang tersebut (200 untuk Ahli Muda), sehingga bisa
+        langsung diusulkan naik jenjang paling singkat 1 tahun kemudian. AK Penyetaraan aslinya (54) tetap
+        dicatat untuk diperhitungkan pada kenaikan <i>pangkat</i> berikutnya setelah jenjang sesuai golongan.</li>
+        <li><b>Golongan lebih rendah dari jenjang (J&gt;P)</b> — contoh: golongan III/d diangkat ke jenjang Ahli
+        Madya (padahal III/d secara alami setara Ahli Muda). AK dari tabel Penyetaraan (mis. 5) + konversi
+        predikat kinerja + AK pemenuhan selisih, digabung menjadi AK <b>penuh sebesar kebutuhan kenaikan
+        pangkat</b> golongan tersebut (100 untuk III/d→IV/a), berlaku setelah menduduki pangkat &amp; jabatan
+        minimal 1 tahun.</li>
+      </ul>
+      <p class="small-muted">Kedua contoh ini divalidasi persis terhadap contoh resmi di SE BKN No.9/2024
+      (kasus Sdr. Dani = 200, dan kasus Sdr. Weldi = 100).</p>
+
+      <h2 style="margin-top:20px">Kenaikan Jenjang Susulan (J≠P pada pengangkatan pertama ke JF)</h2>
+      <p>Untuk kasus Perpindahan dengan Jabatan≠Jenjang (mis. dari Pelaksana golongan III/d atau IV/a masuk ke
+      JF pada jenjang Ahli Pertama yang lebih rendah dari golongannya), ada mekanisme lanjutan saat jenjangnya
+      kemudian dinaikkan menyusul golongan. <b>Mekanisme ini tidak diatur eksplisit di Perka BKN No.3/2023</b> —
+      berdasarkan konfirmasi langsung ke BKN, aturannya:</p>
+      <ol style="padding-left:20px;line-height:1.8">
+        <li>Pengangkatan pertama ke JF (jenjang awal yang J≠P) tetap memakai <b>tabel AK Perpindahan</b> seperti
+        biasa (mis. golongan III/d/IV/a masuk Ahli Pertama = AK 100 dari tabel).</li>
+        <li>Saat jenjang dinaikkan menyusul golongan (satu tahap atau lebih), AK pada <b>setiap tahap kenaikan</b>
+        dihitung dari <b>masa kerja golongan SEBELUM pertama kali diangkat ke JF</b> (bukan periode sekarang),
+        dikalikan Norma AK Tahunan jenjang yang SEDANG dituju pada tahap itu:
+          <ul style="margin-top:4px">
+            <li>Selama masih J&lt;P (golongan masih lebih tinggi dari jenjang yang dituju): ditambahkan
+            "AK Pemenuhan" — yaitu AK Dasar dari golongan yang secara alami cocok dengan jenjang tersebut
+            (bukan AK Dasar dari golongan pegawai yang sebenarnya).</li>
+            <li>Begitu tercapai J=P (golongan sudah cocok dengan jenjang): berlaku AK Dasar normal dari golongan
+            aktual pegawai.</li>
+          </ul>
+        </li>
+      </ol>
+      <p class="small-muted">Contoh (dikonfirmasi oleh instansi pengguna kalkulator ini): Pelaksana golongan IV/a
+      dengan masa kerja 2 tahun sebelum diangkat ke Ahli Pertama. Saat naik ke Ahli Muda (masih J&lt;P): AK = (2 × 25) +
+      Pemenuhan III/d (100) = 150. Saat naik lagi ke Ahli Madya (J=P): AK = (2 × 37,5) + AK Dasar IV/a (0) = 75 —
+      dihitung dari masa kerja 2 tahun yang SAMA setiap tahap, hanya koefisiennya yang berubah mengikuti jenjang
+      yang dituju.</p>
+      <p><b>Karena ini praktik yang dikonfirmasi informal (bukan tertulis dalam regulasi), pastikan selalu
+      dikonsultasikan ulang ke Instansi Pembina/BKN untuk kasus yang berdampak signifikan, dan sesuaikan
+      Skema AK Dasar &amp; tabel referensi bila kebijakan instansi Anda berbeda.</b></p>
+
       <h2 style="margin-top:20px">Dasar Hukum</h2>
       <p>Setelah dibandingkan dengan <b>Peraturan BKN No.3 Tahun 2023</b> tentang Angka Kredit, Kenaikan Pangkat dan
       Jenjang Jabatan Fungsional serta <b>Surat Edaran Kepala BKN No.9 Tahun 2024</b>, rumus inti kalkulator ini
@@ -545,7 +614,7 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
    Aturan Kustom bagi skenario/rumus yang belum terakomodir.
    ============================================================ */
 
-const DEFAULT_CONFIG = {"jenjangList": ["Terampil", "Mahir", "Penyelia", "Ahli Pertama", "Ahli Muda", "Ahli Madya", "Ahli Utama"], "golonganList": ["II/a", "II/b", "II/c", "II/d", "III/a", "III/b", "III/c", "III/d", "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"], "jenisPengangkatanList": ["Perpindahan", "Pengangkatan Pertama", "Pengangkatan Kembali", "Penyetaraan"], "ijazahList": ["SMA/DI/DII", "D3", "S1", "S2", "S3"], "koefisien": {"butuhPerbaikan": 0.75, "baik": 1.0, "sangatBaik": 1.5}, "windowYears": {"pangkatPuncak": 3.0, "normal": 4.0}, "normaAkTahunan": {"Terampil": 5.0, "Mahir": 12.5, "Penyelia": 25.0, "Ahli Pertama": 12.5, "Ahli Muda": 25.0, "Ahli Madya": 37.5, "Ahli Utama": 50.0}, "akKumulatif": {"Terampil": 40.0, "Mahir": 100.0, "Penyelia": 0.0, "Ahli Pertama": 100.0, "Ahli Muda": 200.0, "Ahli Madya": 450.0, "Ahli Utama": 0.0}, "pangkatPuncakMap": {"S1,III/d": "pangkat puncak", "S2,IV/a": "pangkat puncak", "S3,IV/b": "pangkat puncak"}, "jenjangCode": {"Terampil": 1, "Mahir": 2, "Penyelia": 3, "Ahli Pertama": 4, "Ahli Muda": 5, "Ahli Madya": 6, "Ahli Utama": 7}, "pangkatKeterampilan": {"II/c": {"label": "II/c Keterampilan", "nilaiDasar": 60.0, "kebutuhanNaikPangkat": 20.0, "kumulatifNaikPangkatSelanjutnya": 20.0, "kebutuhanPP": 0.0, "code": 1}, "II/d": {"label": "II/d Keterampilan", "nilaiDasar": 60.0, "kebutuhanNaikPangkat": 20.0, "kumulatifNaikPangkatSelanjutnya": 40.0, "kebutuhanPP": 0.0, "code": 1}, "III/a": {"label": "III/a Keterampilan", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 50.0, "kebutuhanPP": 4.0, "code": 2}, "III/b": {"label": "III/b Keterampilan", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 4.0, "code": 2}, "III/c": {"label": "III/c Keterampilan", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 100.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 0.0, "code": 3}, "III/d": {"label": "III/d Keterampilan", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 0.0, "kumulatifNaikPangkatSelanjutnya": 0.0, "kebutuhanPP": 0.0, "code": 3}}, "pangkatKeahlian": {"III/a": {"label": "III/a Keahlian", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 50.0, "kebutuhanPP": 0.0, "code": 4}, "III/b": {"label": "III/b Keahlian", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 0.0, "code": 4}, "III/c": {"label": "III/c Keahlian", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 100.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 6.0, "code": 5}, "III/d": {"label": "III/d Keahlian", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 100.0, "kumulatifNaikPangkatSelanjutnya": 200.0, "kebutuhanPP": 6.0, "code": 5}, "IV/a": {"label": "IV/a Keahlian", "nilaiDasar": 400.0, "kebutuhanNaikPangkat": 150.0, "kumulatifNaikPangkatSelanjutnya": 150.0, "kebutuhanPP": 12.0, "code": 6}, "IV/b": {"label": "IV/b Keahlian", "nilaiDasar": 400.0, "kebutuhanNaikPangkat": 150.0, "kumulatifNaikPangkatSelanjutnya": 300.0, "kebutuhanPP": 12.0, "code": 6}, "IV/c": {"label": "IV/c Keahlian", "nilaiDasar": 400.0, "kebutuhanNaikPangkat": 150.0, "kumulatifNaikPangkatSelanjutnya": 450.0, "kebutuhanPP": 12.0, "code": 6}, "IV/d": {"label": "IV/d Keahlian", "nilaiDasar": 700.0, "kebutuhanNaikPangkat": 200.0, "kumulatifNaikPangkatSelanjutnya": 200.0, "kebutuhanPP": 0.0, "code": 7}, "IV/e": {"label": "IV/e Keahlian", "nilaiDasar": 700.0, "kebutuhanNaikPangkat": 0.0, "kumulatifNaikPangkatSelanjutnya": 0.0, "kebutuhanPP": 0.0, "code": 7}}, "akDasarGolongan": {"III/b": 50.0, "III/d": 100.0, "IV/b": 150.0, "II/d": 20.0, "II/c": 0.0, "III/a": 0.0, "III/c": 0.0, "IV/a": 0.0, "IV/c": 300.0, "IV/e": 0.0, "II/a": 0, "II/b": 0, "IV/d": 0}, "cocokTable": {"Pengawas,Ahli Muda": "COCOK", "Administrator,Ahli Madya": "COCOK", "Jabatan Pimpinan Tinggi,Ahli Utama": "COCOK", "Mahir,Ahli Pertama": "COCOK", "Penyelia,Ahli Muda": "COCOK", "Terampil,Ahli Pertama": "COCOK", "Pelaksana,Ahli Pertama": "COCOK", "Pelaksana,Ahli Muda": "COCOK", "Pelaksana,Ahli Madya": "COCOK", "Pelaksana,Mahir,III/a": "COCOK", "Pelaksana,Terampil,II/d": "COCOK", "Pelaksana,Terampil,II/c": "COCOK", "Pelaksana,Mahir,III/b": "COCOK", "Pelaksana,Penyelia,III/c": "COCOK", "Pelaksana,Penyelia,III/d": "COCOK", "CPNS,Ahli Pertama": "COCOK", "CPNS,Ahli Muda": "COCOK"}, "jabatanCatatan": {"JABATAN": "KETERANGAN", "Pengawas": "Harus ke Jenjang Ahli Muda, tanpa melihat Pangkat/Golongan.", "Administrator": "Harus ke Jenjang Ahli Madya, tanpa melihat Pangkat/Golongan.", "Jabatan Pimpinan Tinggi": "Harus ke Jenjang Ahli Utama, tanpa melihat Pangkat/Golongan.", "Mahir": "Harus ke Ahli Pertama", "Penyelia": "Harus ke Ahli Muda", "Terampil": "Dapat ke Ahli Pertama, jika sudah III/a dan Ijazah S1", "Pelaksana": "Sesuai Surat Menpan RB, dapat fleksibel jenjang yang dituju. Namun pastikan memang ada urgensi, jika jenjang yang dituju diatas AHLI PERTAMA."}, "akPerpindahan": {"Pengawas/III/b/Ahli Muda": 50.0, "Pengawas/IV/a/Ahli Muda": 200.0, "Pengawas/IV/b/Ahli Muda": 200.0, "Pengawas/III/a/Ahli Muda": 50.0, "Administrator/III/c/Ahli Madya": 100.0, "Administrator/III/d/Ahli Madya": 100.0, "Pelaksana/III/c/Ahli Pertama": 100.0, "Pelaksana/III/d/Ahli Pertama": 100.0, "Pelaksana/IV/a/Ahli Pertama": 100.0, "Pelaksana/IV/b/Ahli Pertama": 100.0, "Jabatan Pimpinan Tinggi/IV/b/Ahli Utama": 150, "Jabatan Pimpinan Tinggi/IV/c/Ahli Utama": 150, "CPNS/IV/a/Ahli Pertama": 100.0, "CPNS/III/d/Ahli Pertama": 100.0, "CPNS/III/c/Ahli Pertama": 100.0, "CPNS/III/c/Terampil": 40.0, "CPNS/III/b/Terampil": 40.0, "CPNS/III/a/Terampil": 40.0, "CPNS/II/d/Pemula": 15.0, "CPNS/II/c/Pemula": 15.0, "CPNS/II/b/Pemula": 15.0, "CPNS/II/a/Pemula": 15.0}, "penyetaraanMismatch": {"Pengawas/III/b/Ahli Muda": 50.0, "Pengawas/IV/a/Ahli Muda": 200.0, "Pengawas/IV/b/Ahli Muda": 200.0, "Pengawas/III/a/Ahli Muda": 50.0, "Administrator/III/c/Ahli Madya": 100.0, "Administrator/III/d/Ahli Madya": 100.0, "Pelaksana/III/c/Ahli Pertama": 100.0, "Pelaksana/III/d/Ahli Pertama": 100.0, "Pelaksana/IV/a/Ahli Pertama": 100.0, "Pelaksana/IV/b/Ahli Pertama": 100.0, "Jabatan Pimpinan Tinggi/IV/b/Ahli Utama": 150.0, "Jabatan Pimpinan Tinggi/IV/c/Ahli Utama": 150.0}, "penyetaraan": {"III/a/S1/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/a/S1/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/a/S1/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/a/S1/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/a/S1/4 Tahun Atau Lebih": {"ak": 47.0, "kenaikanPangkat": 50.0}, "III/b/S1/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/b/S1/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/b/S1/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/b/S1/4 Tahun Atau Lebih": {"ak": 47.0, "kenaikanPangkat": 50.0}, "III/b/S2/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/b/S2/1 Tahun": {"ak": 19.0, "kenaikanPangkat": 50.0}, "III/b/S2/2 Tahun": {"ak": 29.0, "kenaikanPangkat": 50.0}, "III/b/S2/3 Tahun": {"ak": 39.0, "kenaikanPangkat": 50.0}, "III/b/S2/4 Tahun Atau Lebih": {"ak": 48.0, "kenaikanPangkat": 50.0}, "III/c/S1/<1 Tahun": {"ak": 5.0, "kenaikanPangkat": 100.0}, "III/c/S1/1 Tahun": {"ak": 35.0, "kenaikanPangkat": 100.0}, "III/c/S1/2 Tahun": {"ak": 55.0, "kenaikanPangkat": 100.0}, "III/c/S1/3 Tahun": {"ak": 75.0, "kenaikanPangkat": 100.0}, "III/c/S1/4 Tahun Atau Lebih": {"ak": 95.0, "kenaikanPangkat": 100.0}, "III/c/S2/<1 Tahun": {"ak": 6, "kenaikanPangkat": 100.0}, "III/c/S2/1 Tahun": {"ak": 36, "kenaikanPangkat": 100.0}, "III/c/S2/2 Tahun": {"ak": 56, "kenaikanPangkat": 100.0}, "III/c/S2/3 Tahun": {"ak": 76, "kenaikanPangkat": 100.0}, "III/c/S2/4 Tahun Atau Lebih": {"ak": 96, "kenaikanPangkat": 100.0}, "III/c/S3/<1 Tahun": {"ak": 7, "kenaikanPangkat": 100.0}, "III/c/S3/1 Tahun": {"ak": 37, "kenaikanPangkat": 100.0}, "III/c/S3/2 Tahun": {"ak": 57, "kenaikanPangkat": 100.0}, "III/c/S3/3 Tahun": {"ak": 77, "kenaikanPangkat": 100.0}, "III/c/S3/4 Tahun Atau Lebih": {"ak": 97, "kenaikanPangkat": 100.0}, "III/d/S1/<1 Tahun": {"ak": 5.0, "kenaikanPangkat": 100.0}, "III/d/S1/1 Tahun": {"ak": 35.0, "kenaikanPangkat": 100.0}, "III/d/S1/2 Tahun": {"ak": 55.0, "kenaikanPangkat": 100.0}, "III/d/S1/3 Tahun": {"ak": 75.0, "kenaikanPangkat": 100.0}, "III/d/S1/4 Tahun Atau Lebih": {"ak": 95.0, "kenaikanPangkat": 100.0}, "III/d/S2/<1 Tahun": {"ak": 6, "kenaikanPangkat": 100.0}, "III/d/S2/1 Tahun": {"ak": 36, "kenaikanPangkat": 100.0}, "III/d/S2/2 Tahun": {"ak": 56, "kenaikanPangkat": 100.0}, "III/d/S2/3 Tahun": {"ak": 76, "kenaikanPangkat": 100.0}, "III/d/S2/4 Tahun Atau Lebih": {"ak": 96, "kenaikanPangkat": 100.0}, "III/d/S3/<1 Tahun": {"ak": 7, "kenaikanPangkat": 100.0}, "III/d/S3/1 Tahun": {"ak": 37, "kenaikanPangkat": 100.0}, "III/d/S3/2 Tahun": {"ak": 57, "kenaikanPangkat": 100.0}, "III/d/S3/3 Tahun": {"ak": 77, "kenaikanPangkat": 100.0}, "III/d/S3/4 Tahun Atau Lebih": {"ak": 97, "kenaikanPangkat": 100.0}, "IV/a/S1/<1 Tahun": {"ak": 8.0, "kenaikanPangkat": 150.0}, "IV/a/S1/1 Tahun": {"ak": 53.0, "kenaikanPangkat": 150.0}, "IV/a/S1/2 Tahun": {"ak": 83.0, "kenaikanPangkat": 150.0}, "IV/a/S1/3 Tahun": {"ak": 113.0, "kenaikanPangkat": 150.0}, "IV/a/S1/4 Tahun Atau Lebih": {"ak": 143.0, "kenaikanPangkat": 150.0}, "IV/a/S2/<1 Tahun": {"ak": 9, "kenaikanPangkat": 150.0}, "IV/a/S2/1 Tahun": {"ak": 54, "kenaikanPangkat": 150.0}, "IV/a/S2/2 Tahun": {"ak": 84, "kenaikanPangkat": 150.0}, "IV/a/S2/3 Tahun": {"ak": 114, "kenaikanPangkat": 150.0}, "IV/a/S2/4 Tahun Atau Lebih": {"ak": 144, "kenaikanPangkat": 150.0}, "IV/a/S3/<1 Tahun": {"ak": 11, "kenaikanPangkat": 150.0}, "IV/a/S3/1 Tahun": {"ak": 56, "kenaikanPangkat": 150.0}, "IV/a/S3/2 Tahun": {"ak": 86, "kenaikanPangkat": 150.0}, "IV/a/S3/3 Tahun": {"ak": 116, "kenaikanPangkat": 150.0}, "IV/a/S3/4 Tahun Atau Lebih": {"ak": 146, "kenaikanPangkat": 150.0}, "IV/b/S1/<1 Tahun": {"ak": 8.0, "kenaikanPangkat": 150.0}, "IV/b/S1/1 Tahun": {"ak": 53.0, "kenaikanPangkat": 150.0}, "IV/b/S1/2 Tahun": {"ak": 83.0, "kenaikanPangkat": 150.0}, "IV/b/S1/3 Tahun": {"ak": 113.0, "kenaikanPangkat": 150.0}, "IV/b/S1/4 Tahun Atau Lebih": {"ak": 143.0, "kenaikanPangkat": 150.0}, "IV/b/S2/<1 Tahun": {"ak": 9, "kenaikanPangkat": 150.0}, "IV/b/S2/1 Tahun": {"ak": 54, "kenaikanPangkat": 150.0}, "IV/b/S2/2 Tahun": {"ak": 84, "kenaikanPangkat": 150.0}, "IV/b/S2/3 Tahun": {"ak": 114, "kenaikanPangkat": 150.0}, "IV/b/S2/4 Tahun Atau Lebih": {"ak": 144, "kenaikanPangkat": 150.0}, "IV/b/S3/<1 Tahun": {"ak": 11, "kenaikanPangkat": 150.0}, "IV/b/S3/1 Tahun": {"ak": 56, "kenaikanPangkat": 150.0}, "IV/b/S3/2 Tahun": {"ak": 86, "kenaikanPangkat": 150.0}, "IV/b/S3/3 Tahun": {"ak": 116, "kenaikanPangkat": 150.0}, "IV/b/S3/4 Tahun Atau Lebih": {"ak": 146, "kenaikanPangkat": 150.0}, "IV/c/S1/<1 Tahun": {"ak": 8.0, "kenaikanPangkat": 150.0}, "IV/c/S1/1 Tahun": {"ak": 53.0, "kenaikanPangkat": 150.0}, "IV/c/S1/2 Tahun": {"ak": 83.0, "kenaikanPangkat": 150.0}, "IV/c/S1/3 Tahun": {"ak": 113.0, "kenaikanPangkat": 150.0}, "IV/c/S1/4 Tahun Atau Lebih": {"ak": 143.0, "kenaikanPangkat": 150.0}, "IV/c/S2/<1 Tahun": {"ak": 9, "kenaikanPangkat": 150.0}, "IV/c/S2/1 Tahun": {"ak": 54, "kenaikanPangkat": 150.0}, "IV/c/S2/2 Tahun": {"ak": 84, "kenaikanPangkat": 150.0}, "IV/c/S2/3 Tahun": {"ak": 114, "kenaikanPangkat": 150.0}, "IV/c/S2/4 Tahun Atau Lebih": {"ak": 144, "kenaikanPangkat": 150.0}, "IV/c/S3/<1 Tahun": {"ak": 11, "kenaikanPangkat": 150.0}, "IV/c/S3/1 Tahun": {"ak": 56, "kenaikanPangkat": 150.0}, "IV/c/S3/2 Tahun": {"ak": 86, "kenaikanPangkat": 150.0}, "IV/c/S3/3 Tahun": {"ak": 116, "kenaikanPangkat": 150.0}, "IV/c/S3/4 Tahun Atau Lebih": {"ak": 146, "kenaikanPangkat": 150.0}, "IV/d/S1/<1 Tahun": {"ak": 10.0, "kenaikanPangkat": 200.0}, "IV/d/S1/1 Tahun": {"ak": 70.0, "kenaikanPangkat": 200.0}, "IV/d/S1/2 Tahun": {"ak": 110.0, "kenaikanPangkat": 200.0}, "IV/d/S1/3 Tahun": {"ak": 150.0, "kenaikanPangkat": 200.0}, "IV/d/S1/4 Tahun Atau Lebih": {"ak": 190.0, "kenaikanPangkat": 200.0}, "IV/d/S2/<1 Tahun": {"ak": 12, "kenaikanPangkat": 200.0}, "IV/d/S2/1 Tahun": {"ak": 72, "kenaikanPangkat": 200.0}, "IV/d/S2/2 Tahun": {"ak": 112, "kenaikanPangkat": 200.0}, "IV/d/S2/3 Tahun": {"ak": 152, "kenaikanPangkat": 200.0}, "IV/d/S2/4 Tahun Atau Lebih": {"ak": 192, "kenaikanPangkat": 200.0}, "IV/d/S3/<1 Tahun": {"ak": 14, "kenaikanPangkat": 200.0}, "IV/d/S3/1 Tahun": {"ak": 74, "kenaikanPangkat": 200.0}, "IV/d/S3/2 Tahun": {"ak": 114, "kenaikanPangkat": 200.0}, "IV/d/S3/3 Tahun": {"ak": 154, "kenaikanPangkat": 200.0}, "IV/d/S3/4 Tahun Atau Lebih": {"ak": 194, "kenaikanPangkat": 200.0}, "IV/e/S1/<1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/2 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/3 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/4 Tahun Atau Lebih": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/<1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/2 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/3 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/4 Tahun Atau Lebih": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/<1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/2 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/3 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/4 Tahun Atau Lebih": {"ak": 200.0, "kenaikanPangkat": "-"}, "KODE": {"ak": "AK", "kenaikanPangkat": "Kenaikan Pangkat"}, "II/a/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/1 Tahun": {"ak": 5.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/2 Tahun": {"ak": 8.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/3 Tahun": {"ak": 11.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 14.0, "kenaikanPangkat": 15.0}, "II/b/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/1 Tahun": {"ak": 7.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/2 Tahun": {"ak": 11.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/3 Tahun": {"ak": 15.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 18.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/1 Tahun": {"ak": 7.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/2 Tahun": {"ak": 11.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/3 Tahun": {"ak": 15.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 18.0, "kenaikanPangkat": 20.0}, "II/c/D3/<1 Tahun": {"ak": 2, "kenaikanPangkat": 20.0}, "II/c/D3/1 Tahun": {"ak": 8, "kenaikanPangkat": 20.0}, "II/c/D3/2 Tahun": {"ak": 12, "kenaikanPangkat": 20.0}, "II/c/D3/3 Tahun": {"ak": 16, "kenaikanPangkat": 20.0}, "II/c/D3/4 Tahun Atau Lebih": {"ak": 19, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/1 Tahun": {"ak": 7.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/2 Tahun": {"ak": 11.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/3 Tahun": {"ak": 15.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 18.0, "kenaikanPangkat": 20.0}, "II/d/D3/<1 Tahun": {"ak": 2, "kenaikanPangkat": 20.0}, "II/d/D3/1 Tahun": {"ak": 8, "kenaikanPangkat": 20.0}, "II/d/D3/2 Tahun": {"ak": 12, "kenaikanPangkat": 20.0}, "II/d/D3/3 Tahun": {"ak": 16, "kenaikanPangkat": 20.0}, "II/d/D3/4 Tahun Atau Lebih": {"ak": 19, "kenaikanPangkat": 20.0}, "III/a/SMA/DI/DII/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 48.0, "kenaikanPangkat": 50.0}, "III/a/D3/<1 Tahun": {"ak": 4, "kenaikanPangkat": 50.0}, "III/a/D3/1 Tahun": {"ak": 19, "kenaikanPangkat": 50.0}, "III/a/D3/2 Tahun": {"ak": 29, "kenaikanPangkat": 50.0}, "III/a/D3/3 Tahun": {"ak": 39, "kenaikanPangkat": 50.0}, "III/a/D3/4 Tahun Atau Lebih": {"ak": 49, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 48.0, "kenaikanPangkat": 50.0}, "III/b/D3/<1 Tahun": {"ak": 4, "kenaikanPangkat": 50.0}, "III/b/D3/1 Tahun": {"ak": 19, "kenaikanPangkat": 50.0}, "III/b/D3/2 Tahun": {"ak": 29, "kenaikanPangkat": 50.0}, "III/b/D3/3 Tahun": {"ak": 39, "kenaikanPangkat": 50.0}, "III/b/D3/4 Tahun Atau Lebih": {"ak": 49, "kenaikanPangkat": 50.0}, "III/c/SMA/DI/DII/<1 Tahun": {"ak": 5.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/1 Tahun": {"ak": 35.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/2 Tahun": {"ak": 55.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/3 Tahun": {"ak": 75.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 95.0, "kenaikanPangkat": 100.0}, "III/c/D3/<1 Tahun": {"ak": 7, "kenaikanPangkat": 100.0}, "III/c/D3/1 Tahun": {"ak": 37, "kenaikanPangkat": 100.0}, "III/c/D3/2 Tahun": {"ak": 57, "kenaikanPangkat": 100.0}, "III/c/D3/3 Tahun": {"ak": 77, "kenaikanPangkat": 100.0}, "III/c/D3/4 Tahun Atau Lebih": {"ak": 97, "kenaikanPangkat": 100.0}, "III/d/SMA/DI/DII/<1 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/1 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/2 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/3 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/<1 Tahun": {"ak": 100.0, "kenaikanPangkat": null}, "III/d/D3/1 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/2 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/3 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/4 Tahun Atau Lebih": {"ak": 100.0, "kenaikanPangkat": "-"}}, "customRules": [], "skemaAkDasar": {"keahlian_pertama_utama": {"label": "Keahlian: Ahli Pertama s.d. Ahli Utama (mulai III/a)", "table": {"III/a": 0, "III/b": 50, "III/c": 0, "III/d": 100, "IV/a": 0, "IV/b": 150, "IV/c": 300, "IV/d": 0, "IV/e": 0}}, "keahlian_pertama_madya": {"label": "Keahlian: Ahli Pertama s.d. Ahli Madya (mulai III/a)", "table": {"III/a": 0, "III/b": 50, "III/c": 0, "III/d": 100, "IV/a": 0, "IV/b": 150, "IV/c": 0}}, "keahlian_iiib_utama": {"label": "Keahlian: Ahli Pertama (mulai III/b) s.d. Ahli Utama", "table": {"III/b": 0, "III/c": 0, "III/d": 100, "IV/a": 0, "IV/b": 150, "IV/c": 300, "IV/d": 0, "IV/e": 0}}, "keterampilan_iic_penyelia": {"label": "Keterampilan: Terampil (mulai II/c) s.d. Penyelia", "table": {"II/c": 0, "II/d": 20, "III/a": 0, "III/b": 50, "III/c": 0, "III/d": 0}}, "keterampilan_iib_penyelia": {"label": "Keterampilan: Terampil (mulai II/b) s.d. Penyelia", "table": {"II/b": 0, "II/c": 20, "II/d": 40, "III/a": 0, "III/b": 50, "III/c": 0, "III/d": 0}}, "keterampilan_iia_penyelia": {"label": "Keterampilan: Pemula-Terampil (mulai II/a) s.d. Penyelia", "table": {"II/a": 0, "II/b": 0, "II/c": 20, "II/d": 40, "III/a": 0, "III/b": 50, "III/c": 0, "III/d": 0}}}, "skemaAkDasarDefault": {"Keahlian": "keahlian_pertama_utama", "Keterampilan": "keterampilan_iic_penyelia"}, "akPemenuhanPertama": {"Ahli Pertama/IV/a": 100, "Ahli Pertama/III/d": 100, "Ahli Pertama/III/c": 100, "Terampil/III/c": 60, "Terampil/III/b": 60, "Terampil/III/a": 60, "Pemula/II/d": 15, "Pemula/II/c": 15, "Pemula/II/b": 15, "Pemula/II/a": 15, "Ahli Pertama/III/b": 50}, "predikatEkstra": {"kurang": {"label": "Kurang", "koefisien": 0.5, "asumsi": true}, "sangatKurang": {"label": "Sangat Kurang", "koefisien": 0.0, "asumsi": true}}, "penyelarasanPredikat": {"Sangat Baik": "Sangat Baik", "Baik": "Baik", "Cukup": "Butuh Perbaikan", "Kurang": "Kurang", "Buruk": "Sangat Kurang"}};
+const DEFAULT_CONFIG = {"jenjangList": ["Terampil", "Mahir", "Penyelia", "Ahli Pertama", "Ahli Muda", "Ahli Madya", "Ahli Utama"], "golonganList": ["II/a", "II/b", "II/c", "II/d", "III/a", "III/b", "III/c", "III/d", "IV/a", "IV/b", "IV/c", "IV/d", "IV/e"], "jenisPengangkatanList": ["Perpindahan", "Pengangkatan Pertama", "Pengangkatan Kembali", "Penyetaraan"], "ijazahList": ["SMA/DI/DII", "D3", "S1", "S2", "S3"], "koefisien": {"butuhPerbaikan": 0.75, "baik": 1.0, "sangatBaik": 1.5}, "windowYears": {"pangkatPuncak": 3.0, "normal": 4.0}, "normaAkTahunan": {"Terampil": 5.0, "Mahir": 12.5, "Penyelia": 25.0, "Ahli Pertama": 12.5, "Ahli Muda": 25.0, "Ahli Madya": 37.5, "Ahli Utama": 50.0}, "akKumulatif": {"Terampil": 40.0, "Mahir": 100.0, "Penyelia": 0.0, "Ahli Pertama": 100.0, "Ahli Muda": 200.0, "Ahli Madya": 450.0, "Ahli Utama": 0.0}, "pangkatPuncakMap": {"S1,III/d": "pangkat puncak", "S2,IV/a": "pangkat puncak", "S3,IV/b": "pangkat puncak"}, "jenjangCode": {"Terampil": 1, "Mahir": 2, "Penyelia": 3, "Ahli Pertama": 4, "Ahli Muda": 5, "Ahli Madya": 6, "Ahli Utama": 7}, "pangkatKeterampilan": {"II/c": {"label": "II/c Keterampilan", "nilaiDasar": 60.0, "kebutuhanNaikPangkat": 20.0, "kumulatifNaikPangkatSelanjutnya": 20.0, "kebutuhanPP": 0.0, "code": 1}, "II/d": {"label": "II/d Keterampilan", "nilaiDasar": 60.0, "kebutuhanNaikPangkat": 20.0, "kumulatifNaikPangkatSelanjutnya": 40.0, "kebutuhanPP": 0.0, "code": 1}, "III/a": {"label": "III/a Keterampilan", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 50.0, "kebutuhanPP": 4.0, "code": 2}, "III/b": {"label": "III/b Keterampilan", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 4.0, "code": 2}, "III/c": {"label": "III/c Keterampilan", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 100.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 0.0, "code": 3}, "III/d": {"label": "III/d Keterampilan", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 0.0, "kumulatifNaikPangkatSelanjutnya": 0.0, "kebutuhanPP": 0.0, "code": 3}}, "pangkatKeahlian": {"III/a": {"label": "III/a Keahlian", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 50.0, "kebutuhanPP": 0.0, "code": 4}, "III/b": {"label": "III/b Keahlian", "nilaiDasar": 100.0, "kebutuhanNaikPangkat": 50.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 0.0, "code": 4}, "III/c": {"label": "III/c Keahlian", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 100.0, "kumulatifNaikPangkatSelanjutnya": 100.0, "kebutuhanPP": 6.0, "code": 5}, "III/d": {"label": "III/d Keahlian", "nilaiDasar": 200.0, "kebutuhanNaikPangkat": 100.0, "kumulatifNaikPangkatSelanjutnya": 200.0, "kebutuhanPP": 6.0, "code": 5}, "IV/a": {"label": "IV/a Keahlian", "nilaiDasar": 400.0, "kebutuhanNaikPangkat": 150.0, "kumulatifNaikPangkatSelanjutnya": 150.0, "kebutuhanPP": 12.0, "code": 6}, "IV/b": {"label": "IV/b Keahlian", "nilaiDasar": 400.0, "kebutuhanNaikPangkat": 150.0, "kumulatifNaikPangkatSelanjutnya": 300.0, "kebutuhanPP": 12.0, "code": 6}, "IV/c": {"label": "IV/c Keahlian", "nilaiDasar": 400.0, "kebutuhanNaikPangkat": 150.0, "kumulatifNaikPangkatSelanjutnya": 450.0, "kebutuhanPP": 12.0, "code": 6}, "IV/d": {"label": "IV/d Keahlian", "nilaiDasar": 700.0, "kebutuhanNaikPangkat": 200.0, "kumulatifNaikPangkatSelanjutnya": 200.0, "kebutuhanPP": 0.0, "code": 7}, "IV/e": {"label": "IV/e Keahlian", "nilaiDasar": 700.0, "kebutuhanNaikPangkat": 0.0, "kumulatifNaikPangkatSelanjutnya": 0.0, "kebutuhanPP": 0.0, "code": 7}}, "akDasarGolongan": {"III/b": 50.0, "III/d": 100.0, "IV/b": 150.0, "II/d": 20.0, "II/c": 0.0, "III/a": 0.0, "III/c": 0.0, "IV/a": 0.0, "IV/c": 300.0, "IV/e": 0.0, "II/a": 0, "II/b": 0, "IV/d": 0}, "cocokTable": {"Pengawas,Ahli Muda": "COCOK", "Administrator,Ahli Madya": "COCOK", "Jabatan Pimpinan Tinggi,Ahli Utama": "COCOK", "Mahir,Ahli Pertama": "COCOK", "Penyelia,Ahli Muda": "COCOK", "Terampil,Ahli Pertama": "COCOK", "Pelaksana,Ahli Pertama": "COCOK", "Pelaksana,Ahli Muda": "COCOK", "Pelaksana,Ahli Madya": "COCOK", "Pelaksana,Mahir,III/a": "COCOK", "Pelaksana,Terampil,II/d": "COCOK", "Pelaksana,Terampil,II/c": "COCOK", "Pelaksana,Mahir,III/b": "COCOK", "Pelaksana,Penyelia,III/c": "COCOK", "Pelaksana,Penyelia,III/d": "COCOK", "CPNS,Ahli Pertama": "COCOK", "CPNS,Ahli Muda": "COCOK"}, "jabatanCatatan": {"JABATAN": "KETERANGAN", "Pengawas": "Harus ke Jenjang Ahli Muda, tanpa melihat Pangkat/Golongan.", "Administrator": "Harus ke Jenjang Ahli Madya, tanpa melihat Pangkat/Golongan.", "Jabatan Pimpinan Tinggi": "Harus ke Jenjang Ahli Utama, tanpa melihat Pangkat/Golongan.", "Mahir": "Harus ke Ahli Pertama", "Penyelia": "Harus ke Ahli Muda", "Terampil": "Dapat ke Ahli Pertama, jika sudah III/a dan Ijazah S1", "Pelaksana": "Sesuai Surat Menpan RB, dapat fleksibel jenjang yang dituju. Namun pastikan memang ada urgensi, jika jenjang yang dituju diatas AHLI PERTAMA."}, "akPerpindahan": {"Pengawas/III/b/Ahli Muda": 50.0, "Pengawas/IV/a/Ahli Muda": 200.0, "Pengawas/IV/b/Ahli Muda": 200.0, "Pengawas/III/a/Ahli Muda": 50.0, "Administrator/III/c/Ahli Madya": 100.0, "Administrator/III/d/Ahli Madya": 100.0, "Pelaksana/III/c/Ahli Pertama": 100.0, "Pelaksana/III/d/Ahli Pertama": 100.0, "Pelaksana/IV/a/Ahli Pertama": 100.0, "Pelaksana/IV/b/Ahli Pertama": 100.0, "Jabatan Pimpinan Tinggi/IV/b/Ahli Utama": 150, "Jabatan Pimpinan Tinggi/IV/c/Ahli Utama": 150, "CPNS/IV/a/Ahli Pertama": 100.0, "CPNS/III/d/Ahli Pertama": 100.0, "CPNS/III/c/Ahli Pertama": 100.0, "CPNS/III/c/Terampil": 40.0, "CPNS/III/b/Terampil": 40.0, "CPNS/III/a/Terampil": 40.0, "CPNS/II/d/Pemula": 15.0, "CPNS/II/c/Pemula": 15.0, "CPNS/II/b/Pemula": 15.0, "CPNS/II/a/Pemula": 15.0}, "penyetaraanMismatch": {"Pengawas/III/b/Ahli Muda": 50.0, "Pengawas/IV/a/Ahli Muda": 200.0, "Pengawas/IV/b/Ahli Muda": 200.0, "Pengawas/III/a/Ahli Muda": 50.0, "Administrator/III/c/Ahli Madya": 100.0, "Administrator/III/d/Ahli Madya": 100.0, "Pelaksana/III/c/Ahli Pertama": 100.0, "Pelaksana/III/d/Ahli Pertama": 100.0, "Pelaksana/IV/a/Ahli Pertama": 100.0, "Pelaksana/IV/b/Ahli Pertama": 100.0, "Jabatan Pimpinan Tinggi/IV/b/Ahli Utama": 150.0, "Jabatan Pimpinan Tinggi/IV/c/Ahli Utama": 150.0}, "penyetaraan": {"III/a/S1/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/a/S1/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/a/S1/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/a/S1/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/a/S1/4 Tahun Atau Lebih": {"ak": 47.0, "kenaikanPangkat": 50.0}, "III/b/S1/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/b/S1/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/b/S1/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/b/S1/4 Tahun Atau Lebih": {"ak": 47.0, "kenaikanPangkat": 50.0}, "III/b/S2/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/b/S2/1 Tahun": {"ak": 19.0, "kenaikanPangkat": 50.0}, "III/b/S2/2 Tahun": {"ak": 29.0, "kenaikanPangkat": 50.0}, "III/b/S2/3 Tahun": {"ak": 39.0, "kenaikanPangkat": 50.0}, "III/b/S2/4 Tahun Atau Lebih": {"ak": 48.0, "kenaikanPangkat": 50.0}, "III/c/S1/<1 Tahun": {"ak": 5.0, "kenaikanPangkat": 100.0}, "III/c/S1/1 Tahun": {"ak": 35.0, "kenaikanPangkat": 100.0}, "III/c/S1/2 Tahun": {"ak": 55.0, "kenaikanPangkat": 100.0}, "III/c/S1/3 Tahun": {"ak": 75.0, "kenaikanPangkat": 100.0}, "III/c/S1/4 Tahun Atau Lebih": {"ak": 95.0, "kenaikanPangkat": 100.0}, "III/c/S2/<1 Tahun": {"ak": 6, "kenaikanPangkat": 100.0}, "III/c/S2/1 Tahun": {"ak": 36, "kenaikanPangkat": 100.0}, "III/c/S2/2 Tahun": {"ak": 56, "kenaikanPangkat": 100.0}, "III/c/S2/3 Tahun": {"ak": 76, "kenaikanPangkat": 100.0}, "III/c/S2/4 Tahun Atau Lebih": {"ak": 96, "kenaikanPangkat": 100.0}, "III/c/S3/<1 Tahun": {"ak": 7, "kenaikanPangkat": 100.0}, "III/c/S3/1 Tahun": {"ak": 37, "kenaikanPangkat": 100.0}, "III/c/S3/2 Tahun": {"ak": 57, "kenaikanPangkat": 100.0}, "III/c/S3/3 Tahun": {"ak": 77, "kenaikanPangkat": 100.0}, "III/c/S3/4 Tahun Atau Lebih": {"ak": 97, "kenaikanPangkat": 100.0}, "III/d/S1/<1 Tahun": {"ak": 5.0, "kenaikanPangkat": 100.0}, "III/d/S1/1 Tahun": {"ak": 35.0, "kenaikanPangkat": 100.0}, "III/d/S1/2 Tahun": {"ak": 55.0, "kenaikanPangkat": 100.0}, "III/d/S1/3 Tahun": {"ak": 75.0, "kenaikanPangkat": 100.0}, "III/d/S1/4 Tahun Atau Lebih": {"ak": 95.0, "kenaikanPangkat": 100.0}, "III/d/S2/<1 Tahun": {"ak": 6, "kenaikanPangkat": 100.0}, "III/d/S2/1 Tahun": {"ak": 36, "kenaikanPangkat": 100.0}, "III/d/S2/2 Tahun": {"ak": 56, "kenaikanPangkat": 100.0}, "III/d/S2/3 Tahun": {"ak": 76, "kenaikanPangkat": 100.0}, "III/d/S2/4 Tahun Atau Lebih": {"ak": 96, "kenaikanPangkat": 100.0}, "III/d/S3/<1 Tahun": {"ak": 7, "kenaikanPangkat": 100.0}, "III/d/S3/1 Tahun": {"ak": 37, "kenaikanPangkat": 100.0}, "III/d/S3/2 Tahun": {"ak": 57, "kenaikanPangkat": 100.0}, "III/d/S3/3 Tahun": {"ak": 77, "kenaikanPangkat": 100.0}, "III/d/S3/4 Tahun Atau Lebih": {"ak": 97, "kenaikanPangkat": 100.0}, "IV/a/S1/<1 Tahun": {"ak": 8.0, "kenaikanPangkat": 150.0}, "IV/a/S1/1 Tahun": {"ak": 53.0, "kenaikanPangkat": 150.0}, "IV/a/S1/2 Tahun": {"ak": 83.0, "kenaikanPangkat": 150.0}, "IV/a/S1/3 Tahun": {"ak": 113.0, "kenaikanPangkat": 150.0}, "IV/a/S1/4 Tahun Atau Lebih": {"ak": 143.0, "kenaikanPangkat": 150.0}, "IV/a/S2/<1 Tahun": {"ak": 9, "kenaikanPangkat": 150.0}, "IV/a/S2/1 Tahun": {"ak": 54, "kenaikanPangkat": 150.0}, "IV/a/S2/2 Tahun": {"ak": 84, "kenaikanPangkat": 150.0}, "IV/a/S2/3 Tahun": {"ak": 114, "kenaikanPangkat": 150.0}, "IV/a/S2/4 Tahun Atau Lebih": {"ak": 144, "kenaikanPangkat": 150.0}, "IV/a/S3/<1 Tahun": {"ak": 11, "kenaikanPangkat": 150.0}, "IV/a/S3/1 Tahun": {"ak": 56, "kenaikanPangkat": 150.0}, "IV/a/S3/2 Tahun": {"ak": 86, "kenaikanPangkat": 150.0}, "IV/a/S3/3 Tahun": {"ak": 116, "kenaikanPangkat": 150.0}, "IV/a/S3/4 Tahun Atau Lebih": {"ak": 146, "kenaikanPangkat": 150.0}, "IV/b/S1/<1 Tahun": {"ak": 8.0, "kenaikanPangkat": 150.0}, "IV/b/S1/1 Tahun": {"ak": 53.0, "kenaikanPangkat": 150.0}, "IV/b/S1/2 Tahun": {"ak": 83.0, "kenaikanPangkat": 150.0}, "IV/b/S1/3 Tahun": {"ak": 113.0, "kenaikanPangkat": 150.0}, "IV/b/S1/4 Tahun Atau Lebih": {"ak": 143.0, "kenaikanPangkat": 150.0}, "IV/b/S2/<1 Tahun": {"ak": 9, "kenaikanPangkat": 150.0}, "IV/b/S2/1 Tahun": {"ak": 54, "kenaikanPangkat": 150.0}, "IV/b/S2/2 Tahun": {"ak": 84, "kenaikanPangkat": 150.0}, "IV/b/S2/3 Tahun": {"ak": 114, "kenaikanPangkat": 150.0}, "IV/b/S2/4 Tahun Atau Lebih": {"ak": 144, "kenaikanPangkat": 150.0}, "IV/b/S3/<1 Tahun": {"ak": 11, "kenaikanPangkat": 150.0}, "IV/b/S3/1 Tahun": {"ak": 56, "kenaikanPangkat": 150.0}, "IV/b/S3/2 Tahun": {"ak": 86, "kenaikanPangkat": 150.0}, "IV/b/S3/3 Tahun": {"ak": 116, "kenaikanPangkat": 150.0}, "IV/b/S3/4 Tahun Atau Lebih": {"ak": 146, "kenaikanPangkat": 150.0}, "IV/c/S1/<1 Tahun": {"ak": 8.0, "kenaikanPangkat": 150.0}, "IV/c/S1/1 Tahun": {"ak": 53.0, "kenaikanPangkat": 150.0}, "IV/c/S1/2 Tahun": {"ak": 83.0, "kenaikanPangkat": 150.0}, "IV/c/S1/3 Tahun": {"ak": 113.0, "kenaikanPangkat": 150.0}, "IV/c/S1/4 Tahun Atau Lebih": {"ak": 143.0, "kenaikanPangkat": 150.0}, "IV/c/S2/<1 Tahun": {"ak": 9, "kenaikanPangkat": 150.0}, "IV/c/S2/1 Tahun": {"ak": 54, "kenaikanPangkat": 150.0}, "IV/c/S2/2 Tahun": {"ak": 84, "kenaikanPangkat": 150.0}, "IV/c/S2/3 Tahun": {"ak": 114, "kenaikanPangkat": 150.0}, "IV/c/S2/4 Tahun Atau Lebih": {"ak": 144, "kenaikanPangkat": 150.0}, "IV/c/S3/<1 Tahun": {"ak": 11, "kenaikanPangkat": 150.0}, "IV/c/S3/1 Tahun": {"ak": 56, "kenaikanPangkat": 150.0}, "IV/c/S3/2 Tahun": {"ak": 86, "kenaikanPangkat": 150.0}, "IV/c/S3/3 Tahun": {"ak": 116, "kenaikanPangkat": 150.0}, "IV/c/S3/4 Tahun Atau Lebih": {"ak": 146, "kenaikanPangkat": 150.0}, "IV/d/S1/<1 Tahun": {"ak": 10.0, "kenaikanPangkat": 200.0}, "IV/d/S1/1 Tahun": {"ak": 70.0, "kenaikanPangkat": 200.0}, "IV/d/S1/2 Tahun": {"ak": 110.0, "kenaikanPangkat": 200.0}, "IV/d/S1/3 Tahun": {"ak": 150.0, "kenaikanPangkat": 200.0}, "IV/d/S1/4 Tahun Atau Lebih": {"ak": 190.0, "kenaikanPangkat": 200.0}, "IV/d/S2/<1 Tahun": {"ak": 12, "kenaikanPangkat": 200.0}, "IV/d/S2/1 Tahun": {"ak": 72, "kenaikanPangkat": 200.0}, "IV/d/S2/2 Tahun": {"ak": 112, "kenaikanPangkat": 200.0}, "IV/d/S2/3 Tahun": {"ak": 152, "kenaikanPangkat": 200.0}, "IV/d/S2/4 Tahun Atau Lebih": {"ak": 192, "kenaikanPangkat": 200.0}, "IV/d/S3/<1 Tahun": {"ak": 14, "kenaikanPangkat": 200.0}, "IV/d/S3/1 Tahun": {"ak": 74, "kenaikanPangkat": 200.0}, "IV/d/S3/2 Tahun": {"ak": 114, "kenaikanPangkat": 200.0}, "IV/d/S3/3 Tahun": {"ak": 154, "kenaikanPangkat": 200.0}, "IV/d/S3/4 Tahun Atau Lebih": {"ak": 194, "kenaikanPangkat": 200.0}, "IV/e/S1/<1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/2 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/3 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S1/4 Tahun Atau Lebih": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/<1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/2 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/3 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S2/4 Tahun Atau Lebih": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/<1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/1 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/2 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/3 Tahun": {"ak": 200.0, "kenaikanPangkat": "-"}, "IV/e/S3/4 Tahun Atau Lebih": {"ak": 200.0, "kenaikanPangkat": "-"}, "KODE": {"ak": "AK", "kenaikanPangkat": "Kenaikan Pangkat"}, "II/a/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/1 Tahun": {"ak": 5.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/2 Tahun": {"ak": 8.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/3 Tahun": {"ak": 11.0, "kenaikanPangkat": 15.0}, "II/a/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 14.0, "kenaikanPangkat": 15.0}, "II/b/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/1 Tahun": {"ak": 7.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/2 Tahun": {"ak": 11.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/3 Tahun": {"ak": 15.0, "kenaikanPangkat": 20.0}, "II/b/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 18.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/1 Tahun": {"ak": 7.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/2 Tahun": {"ak": 11.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/3 Tahun": {"ak": 15.0, "kenaikanPangkat": 20.0}, "II/c/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 18.0, "kenaikanPangkat": 20.0}, "II/c/D3/<1 Tahun": {"ak": 2, "kenaikanPangkat": 20.0}, "II/c/D3/1 Tahun": {"ak": 8, "kenaikanPangkat": 20.0}, "II/c/D3/2 Tahun": {"ak": 12, "kenaikanPangkat": 20.0}, "II/c/D3/3 Tahun": {"ak": 16, "kenaikanPangkat": 20.0}, "II/c/D3/4 Tahun Atau Lebih": {"ak": 19, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/<1 Tahun": {"ak": 1.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/1 Tahun": {"ak": 7.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/2 Tahun": {"ak": 11.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/3 Tahun": {"ak": 15.0, "kenaikanPangkat": 20.0}, "II/d/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 18.0, "kenaikanPangkat": 20.0}, "II/d/D3/<1 Tahun": {"ak": 2, "kenaikanPangkat": 20.0}, "II/d/D3/1 Tahun": {"ak": 8, "kenaikanPangkat": 20.0}, "II/d/D3/2 Tahun": {"ak": 12, "kenaikanPangkat": 20.0}, "II/d/D3/3 Tahun": {"ak": 16, "kenaikanPangkat": 20.0}, "II/d/D3/4 Tahun Atau Lebih": {"ak": 19, "kenaikanPangkat": 20.0}, "III/a/SMA/DI/DII/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/a/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 48.0, "kenaikanPangkat": 50.0}, "III/a/D3/<1 Tahun": {"ak": 4, "kenaikanPangkat": 50.0}, "III/a/D3/1 Tahun": {"ak": 19, "kenaikanPangkat": 50.0}, "III/a/D3/2 Tahun": {"ak": 29, "kenaikanPangkat": 50.0}, "III/a/D3/3 Tahun": {"ak": 39, "kenaikanPangkat": 50.0}, "III/a/D3/4 Tahun Atau Lebih": {"ak": 49, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/<1 Tahun": {"ak": 3.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/1 Tahun": {"ak": 18.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/2 Tahun": {"ak": 28.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/3 Tahun": {"ak": 38.0, "kenaikanPangkat": 50.0}, "III/b/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 48.0, "kenaikanPangkat": 50.0}, "III/b/D3/<1 Tahun": {"ak": 4, "kenaikanPangkat": 50.0}, "III/b/D3/1 Tahun": {"ak": 19, "kenaikanPangkat": 50.0}, "III/b/D3/2 Tahun": {"ak": 29, "kenaikanPangkat": 50.0}, "III/b/D3/3 Tahun": {"ak": 39, "kenaikanPangkat": 50.0}, "III/b/D3/4 Tahun Atau Lebih": {"ak": 49, "kenaikanPangkat": 50.0}, "III/c/SMA/DI/DII/<1 Tahun": {"ak": 5.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/1 Tahun": {"ak": 35.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/2 Tahun": {"ak": 55.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/3 Tahun": {"ak": 75.0, "kenaikanPangkat": 100.0}, "III/c/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 95.0, "kenaikanPangkat": 100.0}, "III/c/D3/<1 Tahun": {"ak": 7, "kenaikanPangkat": 100.0}, "III/c/D3/1 Tahun": {"ak": 37, "kenaikanPangkat": 100.0}, "III/c/D3/2 Tahun": {"ak": 57, "kenaikanPangkat": 100.0}, "III/c/D3/3 Tahun": {"ak": 77, "kenaikanPangkat": 100.0}, "III/c/D3/4 Tahun Atau Lebih": {"ak": 97, "kenaikanPangkat": 100.0}, "III/d/SMA/DI/DII/<1 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/1 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/2 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/3 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/SMA/DI/DII/4 Tahun Atau Lebih": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/<1 Tahun": {"ak": 100.0, "kenaikanPangkat": null}, "III/d/D3/1 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/2 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/3 Tahun": {"ak": 100.0, "kenaikanPangkat": "-"}, "III/d/D3/4 Tahun Atau Lebih": {"ak": 100.0, "kenaikanPangkat": "-"}}, "customRules": [], "skemaAkDasar": {"keahlian_pertama_utama": {"label": "Keahlian: Ahli Pertama s.d. Ahli Utama (mulai III/a)", "table": {"III/a": 0, "III/b": 50, "III/c": 0, "III/d": 100, "IV/a": 0, "IV/b": 150, "IV/c": 300, "IV/d": 0, "IV/e": 0}}, "keahlian_pertama_madya": {"label": "Keahlian: Ahli Pertama s.d. Ahli Madya (mulai III/a)", "table": {"III/a": 0, "III/b": 50, "III/c": 0, "III/d": 100, "IV/a": 0, "IV/b": 150, "IV/c": 0}}, "keahlian_iiib_utama": {"label": "Keahlian: Ahli Pertama (mulai III/b) s.d. Ahli Utama", "table": {"III/b": 0, "III/c": 0, "III/d": 100, "IV/a": 0, "IV/b": 150, "IV/c": 300, "IV/d": 0, "IV/e": 0}}, "keterampilan_iic_penyelia": {"label": "Keterampilan: Terampil (mulai II/c) s.d. Penyelia", "table": {"II/c": 0, "II/d": 20, "III/a": 0, "III/b": 50, "III/c": 0, "III/d": 0}}, "keterampilan_iib_penyelia": {"label": "Keterampilan: Terampil (mulai II/b) s.d. Penyelia", "table": {"II/b": 0, "II/c": 20, "II/d": 40, "III/a": 0, "III/b": 50, "III/c": 0, "III/d": 0}}, "keterampilan_iia_penyelia": {"label": "Keterampilan: Pemula-Terampil (mulai II/a) s.d. Penyelia", "table": {"II/a": 0, "II/b": 0, "II/c": 20, "II/d": 40, "III/a": 0, "III/b": 50, "III/c": 0, "III/d": 0}}}, "skemaAkDasarDefault": {"Keahlian": "keahlian_pertama_utama", "Keterampilan": "keterampilan_iic_penyelia"}, "akPemenuhanPertama": {"Ahli Pertama/IV/a": 100, "Ahli Pertama/III/d": 100, "Ahli Pertama/III/c": 100, "Terampil/III/c": 60, "Terampil/III/b": 60, "Terampil/III/a": 60, "Pemula/II/d": 15, "Pemula/II/c": 15, "Pemula/II/b": 15, "Pemula/II/a": 15, "Ahli Pertama/III/b": 50}, "predikatEkstra": {"kurang": {"label": "Kurang", "koefisien": 0.5, "asumsi": true}, "sangatKurang": {"label": "Sangat Kurang", "koefisien": 0.0, "asumsi": true}}, "penyelarasanPredikat": {"Sangat Baik": "Sangat Baik", "Baik": "Baik", "Cukup": "Butuh Perbaikan", "Kurang": "Kurang", "Buruk": "Sangat Kurang"}, "kebutuhanKumulatifJenjang": {"Pemula": 15, "Terampil": 60, "Mahir": 100, "Penyelia": 0, "Ahli Pertama": 100, "Ahli Muda": 200, "Ahli Madya": 450, "Ahli Utama": 0}};
 
 const MONTHS = ["","Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const monthName = m => MONTHS[m] || m;
@@ -791,6 +860,17 @@ function computeRecognizedPeriod(inp){
   return { AL, AM, AN, mkgText, AQ, windowYears, BF, BG, BH, BI, periodeText, warn };
 }
 
+function akDasarForCode(skemaKey, code, pangkatTable){
+  let best = 0;
+  for(const [gol, info] of Object.entries(pangkatTable)){
+    if(info.code === code){
+      const v = akDasarFromSkema(skemaKey, gol);
+      if(v != null && v > best) best = v;
+    }
+  }
+  return best;
+}
+
 function calcAK(inp){
   const notes = [];
   const warn = [];
@@ -814,6 +894,76 @@ function calcAK(inp){
   const BP = `${jabatanKey}/${inp.golonganSaatIni}/${inp.jenjangDituju}`;
   const CE = `${inp.jenisPengangkatan},${BM}`;
 
+  const skemaKey = pickSkemaAkDasar(inp, BK);
+
+  /* ---------------- MODE KHUSUS: Kenaikan Jenjang Susulan ----------------
+     Untuk kasus Perpindahan dengan Jabatan≠Jenjang pada pengangkatan pertama ke JF,
+     lalu belakangan naik jenjang menyusul golongan. Mekanisme ini TIDAK diatur
+     eksplisit di Perka BKN No.3/2023, tapi dikonfirmasi langsung ke BKN: AK pada
+     setiap tahap kenaikan jenjang susulan dihitung dari MASA KERJA GOLONGAN AWAL
+     (sebelum pertama kali diangkat ke JF) — bukan dari periode saat ini — dikalikan
+     Norma AK jenjang yang sedang dituju, ditambah AK Dasar/Pemenuhan yang sesuai. */
+  if(inp.jenisPengangkatan === "Perpindahan" && inp.kenaikanSusulan){
+    const notes = [];
+    const warn = [];
+    const tmtBulan = num(inp.tmtBulan), tmtTahun = num(inp.tmtTahun);
+    const sBulan = num(inp.sampaiBulan), sTahun = num(inp.sampaiTahun);
+    const ALraw = (sTahun - tmtTahun) * 12 + (sBulan - tmtBulan + 1);
+    const targetBF = ALraw;
+    const S = num(inp.bulanButuhPerbaikan), T = num(inp.bulanBaik), U = num(inp.bulanSangatBaik);
+    const K = num(inp.bulanKurang), SK = num(inp.bulanSangatKurang);
+    const sumSTU = S + T + U + K + SK;
+    const jumlahBulanCocok = sumSTU === targetBF;
+    const normaAK = CFG.normaAkTahunan[inp.jenjangDituju];
+
+    let AB=null, AC=null, AD=null, AK_=null, ASK_=null, akDasar=null, totalAK=null, statusHitung="OK";
+
+    if(ALraw < 0){
+      statusHitung = "DATA_TIDAK_LENGKAP";
+      warn.push("Rentang tanggal tidak valid: TMT Golongan Awal berada setelah tanggal pertama diangkat ke JF.");
+    } else if(BJ==null || BL==null){
+      statusHitung = "DATA_TIDAK_LENGKAP";
+    } else if(!jumlahBulanCocok){
+      statusHitung = "TIDAK_COCOK";
+      warn.push(`Jumlah bulan predikat kinerja yang diisi (${sumSTU} bulan) belum sama dengan masa kerja golongan awal (${targetBF} bulan).`);
+    } else if(normaAK==null){
+      statusHitung = "TIDAK_COCOK";
+      warn.push(`Norma AK Tahunan untuk jenjang "${inp.jenjangDituju}" tidak ditemukan.`);
+    } else {
+      AB = (S/12*num(CFG.koefisien.butuhPerbaikan)) * normaAK;
+      AC = (T/12*num(CFG.koefisien.baik)) * normaAK;
+      AD = (U/12*num(CFG.koefisien.sangatBaik)) * normaAK;
+      AK_ = (K/12*num(CFG.predikatEkstra.kurang.koefisien)) * normaAK;
+      ASK_ = (SK/12*num(CFG.predikatEkstra.sangatKurang.koefisien)) * normaAK;
+
+      if(BJ === BL){
+        akDasar = akDasarFromSkema(skemaKey, inp.golonganSaatIni) ?? 0;
+        notes.push(`Jenjang "${inp.jenjangDituju}" sudah setara golongan (J=P) — AK Dasar dihitung normal dari golongan aktual "${inp.golonganSaatIni}" sebesar ${fmt(akDasar)}.`);
+      } else if(BJ < BL){
+        akDasar = akDasarForCode(skemaKey, BJ, pangkatTable);
+        notes.push(`Masih J&lt;P pada tahap ini — ditambahkan "AK Pemenuhan" setara golongan yang cocok dengan jenjang "${inp.jenjangDituju}" sebesar ${fmt(akDasar)}. Ketentuan ini TIDAK diatur eksplisit di Perka BKN No.3/2023 — berdasarkan konfirmasi langsung ke BKN, sesuaikan dengan kebijakan instansi Anda.`);
+      } else {
+        akDasar = 0;
+        warn.push("Jenjang dituju sudah melampaui golongan awal — kombinasi tidak lazim untuk mode ini, periksa kembali data.");
+      }
+      totalAK = AB + AC + AD + AK_ + ASK_ + akDasar;
+      notes.unshift(`Mode "Kenaikan Jenjang Susulan": AK dihitung dari masa kerja golongan awal (${targetBF} bulan, ${monthName(tmtBulan)} ${tmtTahun} - ${monthName(sBulan)} ${sTahun}), dikonversi memakai Norma AK jenjang "${inp.jenjangDituju}" (${normaAK}) — bukan dari tanggal saat ini.`);
+    }
+
+    const AM = Math.floor(ALraw/12), AN = ((ALraw%12)+12)%12;
+    return {
+      input: inp,
+      derived: {
+        BJ, BL, BM, BK, BO: "N/A (mode susulan)", BP, CE: "Perpindahan,Susulan",
+        periodeText: `${monthName(tmtBulan)} ${tmtTahun} - ${monthName(sBulan)} ${sTahun}`,
+        BF: targetBF, BG: Math.floor(targetBF/12), BH: ((targetBF%12)+12)%12, BI: 0,
+        mkgText: `${AM} Tahun ${AN} Bulan`, AL: ALraw, skemaKey, skemaLabel: CFG.skemaAkDasar[skemaKey]?.label
+      },
+      AB, AC, AD, AK_, ASK_, akDasar, totalAK, statusHitung,
+      notes, warn, appliedRules: [], sumSTU, jumlahBulanCocok, BF: targetBF
+    };
+  }
+
   const periode = computeRecognizedPeriod(inp);
   warn.push(...periode.warn);
   const { AL, mkgText, BF, BG, BH, BI, periodeText } = periode;
@@ -822,8 +972,6 @@ function calcAK(inp){
   const K = num(inp.bulanKurang), SK = num(inp.bulanSangatKurang);
   const sumSTU = S + T + U + K + SK;
   const jumlahBulanCocok = sumSTU === BF;
-
-  const skemaKey = pickSkemaAkDasar(inp, BK);
 
   const baseJP = new Set(["Perpindahan,J=P","Pengangkatan Kembali,J=P","Pengangkatan Pertama,J=P"]);
   const isPengangkatanPertama = inp.jenisPengangkatan === "Pengangkatan Pertama";
@@ -914,13 +1062,33 @@ function calcAK(inp){
       statusHitung = "PERLU_ATURAN_KUSTOM";
       warn.push(`Kombinasi "${BZ}" belum terdaftar di Tabel Penyetaraan.`);
     }
-  } else if(CE === "Penyetaraan,J>P" || CE === "Penyetaraan,J<P"){
-    if(CFG.penyetaraanMismatch[BP] != null){
-      totalAK = num(CFG.penyetaraanMismatch[BP]);
-      notes.push(`Penyetaraan dengan Jabatan tidak setingkat Jenjang (${BM}), AK mengikuti tabel untuk "${BP}".`);
+  } else if(CE === "Penyetaraan,J<P"){
+    // Golongan LEBIH TINGGI dari jenjang dituju (SE BKN No.9/2024 bagian 5.c.2.a)
+    const bucket = mkgBucket(AL);
+    const BZkey = `${inp.golonganSaatIni}/${inp.ijazah}/${bucket}`;
+    const p = CFG.penyetaraan[BZkey];
+    const pemenuhanJenjang = CFG.kebutuhanKumulatifJenjang[inp.jenjangDituju];
+    if(p && pemenuhanJenjang != null){
+      totalAK = num(pemenuhanJenjang);
+      notes.push(`Golongan lebih tinggi dari jenjang dituju (J&lt;P). AK dari tabel Penyetaraan (Lampiran Permen PANRB No.1/2023) untuk kombinasi "${BZkey}" sebesar ${fmt(p.ak)} — namun karena golongan sudah melampaui jenjang ini, diberikan PEMENUHAN PENUH sebesar kebutuhan kumulatif jenjang "${inp.jenjangDituju}" (${fmt(pemenuhanJenjang)}), sehingga dapat langsung dipertimbangkan naik jenjang paling singkat 1 tahun kemudian (jika tersedia kebutuhan &amp; lulus Uji Kompetensi). AK Penyetaraan asli (${fmt(p.ak)}) tetap dicatat dan baru diperhitungkan untuk KENAIKAN PANGKAT berikutnya setelah jenjang sesuai golongan (SE BKN No.9/2024 bagian 5.c.2.a).`);
     } else {
       statusHitung = "PERLU_ATURAN_KUSTOM";
-      warn.push(`Kombinasi "${BP}" belum terdaftar di Tabel Penyetaraan (Jabatan≠Jenjang).`);
+      if(!p) warn.push(`Kombinasi "${BZkey}" belum terdaftar di Tabel Penyetaraan.`);
+      if(pemenuhanJenjang==null) warn.push(`Kebutuhan Kumulatif Jenjang untuk "${inp.jenjangDituju}" belum diisi di Referensi.`);
+    }
+  } else if(CE === "Penyetaraan,J>P"){
+    // Golongan LEBIH RENDAH dari jenjang dituju (SE BKN No.9/2024 bagian 5.c.2.b)
+    const bucket = mkgBucket(AL);
+    const BZkey = `${inp.golonganSaatIni}/${inp.ijazah}/${bucket}`;
+    const p = CFG.penyetaraan[BZkey];
+    const kebutuhanPangkat = pInfo ? pInfo.kebutuhanNaikPangkat : null;
+    if(p && kebutuhanPangkat != null){
+      totalAK = num(kebutuhanPangkat);
+      notes.push(`Golongan lebih rendah dari jenjang dituju (J&gt;P). AK Penyetaraan dari tabel sebesar ${fmt(p.ak)} (kombinasi "${BZkey}") ditambah konversi predikat kinerja dan AK pemenuhan selisih, diberikan PENUH sebesar kebutuhan kenaikan pangkat golongan "${inp.golonganSaatIni}" (${fmt(kebutuhanPangkat)}), sesuai SE BKN No.9/2024 bagian 5.c.2.b. Berlaku setelah menduduki pangkat &amp; jabatan paling singkat 1 tahun.`);
+    } else {
+      statusHitung = "PERLU_ATURAN_KUSTOM";
+      if(!p) warn.push(`Kombinasi "${BZkey}" belum terdaftar di Tabel Penyetaraan.`);
+      if(kebutuhanPangkat==null) warn.push(`Kebutuhan Naik Pangkat untuk golongan "${inp.golonganSaatIni}" tidak ditemukan di tabel Kode Pangkat.`);
     }
   } else if(CE === "Pengangkatan Kembali,J<P" || CE === "Pengangkatan Kembali,J>P"){
     statusHitung = "PERLU_ATURAN_KUSTOM";
@@ -1036,9 +1204,11 @@ function getFormInput(){
     bulanKurang: val('f_k'),
     bulanSangatKurang: val('f_sk'),
     skemaAkDasar: val('f_skema'),
+    kenaikanSusulan: isChecked('f_susulan'),
   };
 }
 function val(id){ const e=document.getElementById(id); return e ? e.value : ""; }
+function isChecked(id){ const e=document.getElementById(id); return e ? !!e.checked : false; }
 
 function hitung(){
   const inp = getFormInput();
@@ -1138,6 +1308,7 @@ function downloadFile(filename, content, mime){
 /* ---------------- ADMIN: REFERENSI ---------------- */
 function renderRefTables(){
   renderKV('normaAkTahunan', 'refNorma', 'Jenjang', 'Norma AK / Tahun');
+  renderKV('kebutuhanKumulatifJenjang', 'refKebutuhanJenjang', 'Jenjang', 'AK Kumulatif Kebutuhan');
   renderSkemaAkDasar();
   renderKV('akPemenuhanPertama', 'refAkPemenuhanPertama', 'Kombinasi (Jenjang/Golongan)', 'AK');
   renderPredikatEkstra();
@@ -1378,7 +1549,7 @@ async function saveAllRefTables(){
   saveSkemaAkDasarFromDOM();
   savePredikatEkstraFromDOM();
   // KV tables
-  ['normaAkTahunan','akPemenuhanPertama','cocokTable','akPerpindahan','penyetaraanMismatch','jabatanCatatan'].forEach(cfgKey=>{
+  ['normaAkTahunan','akPemenuhanPertama','kebutuhanKumulatifJenjang','cocokTable','akPerpindahan','penyetaraanMismatch','jabatanCatatan'].forEach(cfgKey=>{
     const inputs = document.querySelectorAll(`[data-cfg="${cfgKey}"]`);
     const rows = {};
     const trs = new Set();
@@ -1615,6 +1786,11 @@ function renderUjiCakupanResult(rows, okCount, warnCount, badCount){
 
 function updateJenisContext(){
   const jenis = val('f_jenis');
+  const susulan = isChecked('f_susulan');
+  const fieldSusulanEl = document.getElementById('fieldSusulan');
+  if(fieldSusulanEl) fieldSusulanEl.style.display = (jenis === "Perpindahan") ? 'block' : 'none';
+  if(jenis !== "Perpindahan" && document.getElementById('f_susulan')) document.getElementById('f_susulan').checked = false;
+
   const titleEl = document.getElementById('mkgTitle');
   const subEl = document.getElementById('mkgSub');
   const lblTmt = document.getElementById('lbl_tmt');
@@ -1625,6 +1801,22 @@ function updateJenisContext(){
   const hintSampaiT = document.getElementById('hint_sampai_tahun');
   const ctxEl = document.getElementById('mkgContextHint');
   if(!titleEl) return;
+
+  if(jenis === "Perpindahan" && susulan){
+    titleEl.textContent = "Masa Kerja Golongan AWAL (sebelum pertama diangkat ke JF)";
+    subEl.textContent = "Ini BUKAN golongan/periode saat ini — isi golongan & tanggal dari sebelum pegawai pertama kali diangkat ke Jabatan Fungsional.";
+    if(lblTmt) lblTmt.textContent = "TMT Golongan Awal — Bulan (1-12)";
+    if(lblSampai) lblSampai.textContent = "Tanggal Pertama Diangkat ke JF — Bulan (1-12)";
+    if(hintTmtB) hintTmtB.textContent = "Bulan mulai berlaku golongan yang dipegang SEBELUM pertama kali diangkat ke JF.";
+    if(hintTmtT) hintTmtT.textContent = "Tahun mulai berlaku golongan tersebut.";
+    if(hintSampaiB) hintSampaiB.textContent = "Bulan pertama kali diangkat ke Jabatan Fungsional (jenjang awal, yang J≠P).";
+    if(hintSampaiT) hintSampaiT.textContent = "Tahun pertama kali diangkat ke Jabatan Fungsional.";
+    if(ctxEl){
+      ctxEl.textContent = "ℹ Isi \"Golongan Saat Ini\" di atas dengan golongan AWAL tersebut, dan \"Jenjang Dituju\" dengan jenjang BARU yang sedang dinaikkan sekarang. AK dihitung dari masa kerja golongan awal ini dikalikan Norma AK jenjang baru — bukan dari periode sekarang.";
+      ctxEl.style.display = 'block'; ctxEl.className = 'period-preview ok';
+    }
+    return;
+  }
 
   const presets = {
     "Perpindahan": {
@@ -1700,6 +1892,7 @@ function updateLivePreview(){
     jenisPengangkatan: val('f_jenis'),
     ijazah: val('f_ijazah'),
     golonganSaatIni: val('f_golongan'),
+    jenjangDituju: val('f_jenjang'),
     tmtBulan: val('f_tmt_bulan'),
     tmtTahun: val('f_tmt_tahun'),
     sampaiBulan: val('f_sampai_bulan'),
@@ -1707,6 +1900,22 @@ function updateLivePreview(){
   };
   const lengkap = inp.jenisPengangkatan && inp.golonganSaatIni && inp.tmtBulan && inp.tmtTahun && inp.sampaiBulan && inp.sampaiTahun;
   if(!lengkap){ el.innerHTML = ''; el.style.display = 'none'; updatePredikatSumCheck(null); return; }
+
+  if(inp.jenisPengangkatan === "Perpindahan" && isChecked('f_susulan')){
+    const tmtBulan=num(inp.tmtBulan), tmtTahun=num(inp.tmtTahun), sBulan=num(inp.sampaiBulan), sTahun=num(inp.sampaiTahun);
+    const ALraw = (sTahun-tmtTahun)*12 + (sBulan-tmtBulan+1);
+    if(ALraw < 0){
+      el.innerHTML = "⚠ Rentang tanggal tidak valid: TMT Golongan Awal berada setelah tanggal pertama diangkat ke JF.";
+      el.style.display='block'; el.className='period-preview warn';
+      updatePredikatSumCheck(null);
+      return;
+    }
+    el.innerHTML = `📅 Masa kerja golongan awal: <b>${monthName(tmtBulan)} ${tmtTahun} - ${monthName(sBulan)} ${sTahun}</b> — total <b>${ALraw} bulan</b>. Isi total kolom predikat kinerja di bawah supaya berjumlah <b>${ALraw}</b>.`;
+    el.style.display = 'block'; el.className = 'period-preview ok';
+    updatePredikatSumCheck(ALraw);
+    return;
+  }
+
   try{
     const r = computeRecognizedPeriod(inp);
     if(r.warn && r.warn.length){
@@ -1815,6 +2024,10 @@ async function initApp(){
   });
   const fJenisEl = document.getElementById('f_jenis');
   if(fJenisEl) fJenisEl.addEventListener('change', updateJenisContext);
+  const fSusulanEl = document.getElementById('f_susulan');
+  if(fSusulanEl){
+    fSusulanEl.addEventListener('change', ()=>{ updateJenisContext(); updateLivePreview(); });
+  }
   updateJenisContext();
   document.querySelectorAll('nav.tabs button').forEach(b=>{
     b.addEventListener('click', async ()=>{
