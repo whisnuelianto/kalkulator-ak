@@ -200,6 +200,7 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
         <div class="field"><label>Sangat Baik (bulan)</label><input type="number" min="0" id="f_u" value="0"></div>
       </div>
       <div class="hint">Kategori "Kurang" dan "Sangat Kurang" jarang dipakai dalam praktik konversi AK (biasanya predikat minimal Baik yang disyaratkan) — koefisiennya adalah asumsi kerja, dapat diubah di tab Referensi.</div>
+      <div id="predikatSumCheck" class="period-preview" style="display:none;margin-top:12px;margin-bottom:0"></div>
     </div>
 
     <div class="actions">
@@ -1705,19 +1706,42 @@ function updateLivePreview(){
     sampaiTahun: val('f_sampai_tahun'),
   };
   const lengkap = inp.jenisPengangkatan && inp.golonganSaatIni && inp.tmtBulan && inp.tmtTahun && inp.sampaiBulan && inp.sampaiTahun;
-  if(!lengkap){ el.innerHTML = ''; el.style.display = 'none'; return; }
+  if(!lengkap){ el.innerHTML = ''; el.style.display = 'none'; updatePredikatSumCheck(null); return; }
   try{
     const r = computeRecognizedPeriod(inp);
     if(r.warn && r.warn.length){
       el.innerHTML = `⚠ ${escapeHtml(r.warn[0])}`;
       el.style.display = 'block';
       el.className = 'period-preview warn';
+      updatePredikatSumCheck(null);
       return;
     }
-    el.innerHTML = `📅 Periode yang dapat dikonversi: <b>${r.periodeText}</b> — total <b>${r.BF} bulan</b> (${r.BG} Tahun ${r.BH} Bulan). Isi total kolom predikat kinerja di bawah supaya berjumlah <b>${r.BF}</b>.`;
+    let html = `📅 Periode yang dapat dikonversi: <b>${r.periodeText}</b> — total <b>${r.BF} bulan</b> (${r.BG} Tahun ${r.BH} Bulan). Isi total kolom predikat kinerja di bawah supaya berjumlah <b>${r.BF}</b>.`;
+    if(r.AQ === "pangkat puncak"){
+      html += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #b8d4e8">⚠ <b>Status Pangkat Puncak terdeteksi</b> — masa kepangkatan pada jabatan administrasi ini sudah melewati batas normal, sehingga periode yang diakui dibatasi maksimal <b>${CFG.windowYears.pangkatPuncak} tahun terakhir</b> saja (bukan ${CFG.windowYears.normal} tahun), sesuai Pasal 7 ayat (4) Perka BKN No.3/2023. Bulan-bulan sebelum periode ini tidak ikut dikonversi.</div>`;
+    }
+    el.innerHTML = html;
     el.style.display = 'block';
     el.className = 'period-preview ok';
-  }catch(e){ el.innerHTML=''; el.style.display='none'; }
+    updatePredikatSumCheck(r.BF);
+  }catch(e){ el.innerHTML=''; el.style.display='none'; updatePredikatSumCheck(null); }
+}
+
+function updatePredikatSumCheck(BF){
+  const el = document.getElementById('predikatSumCheck');
+  if(!el) return;
+  if(BF == null){ el.style.display = 'none'; el.innerHTML=''; return; }
+  const S=num(val('f_s')), T=num(val('f_t')), U=num(val('f_u')), K=num(val('f_k')), SK=num(val('f_sk'));
+  const sum = S+T+U+K+SK;
+  if(sum === BF){
+    el.innerHTML = `✅ Jumlah bulan yang diisi (<b>${sum}</b>) sudah sesuai dengan periode terdeteksi (<b>${BF}</b> bulan).`;
+    el.className = 'period-preview ok';
+  } else {
+    const selisih = BF - sum;
+    el.innerHTML = `⚠ Jumlah bulan yang diisi (<b>${sum}</b>) belum sama dengan periode terdeteksi (<b>${BF}</b> bulan). ${selisih>0 ? `Kurang <b>${selisih}</b> bulan lagi.` : `Kelebihan <b>${Math.abs(selisih)}</b> bulan.`}`;
+    el.className = 'period-preview warn';
+  }
+  el.style.display = 'block';
 }
 
 /* ---------------- UI HELPERS ---------------- */
@@ -1784,7 +1808,7 @@ async function initApp(){
   renderHistory();
   renderRefTables();
   renderCustomRules();
-  ['f_jenis','f_ijazah','f_golongan','f_tmt_bulan','f_tmt_tahun','f_sampai_bulan','f_sampai_tahun'].forEach(id=>{
+  ['f_jenis','f_ijazah','f_golongan','f_tmt_bulan','f_tmt_tahun','f_sampai_bulan','f_sampai_tahun','f_s','f_t','f_u','f_k','f_sk'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.addEventListener('input', updateLivePreview);
     if(el) el.addEventListener('change', updateLivePreview);
