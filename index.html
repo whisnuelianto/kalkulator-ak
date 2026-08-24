@@ -855,7 +855,8 @@ function computeRecognizedPeriod(inp){
   const AUmonth = sBulan === 12 ? 1 : sBulan + 1;
 
   const BAdecimal = tmtBulan/12 + tmtTahun;
-  const rentangPenuh = BAdecimal >= AXyear;
+  const cutoffDecimal = AXyear + AUmonth/12; // titik cut-off persis (tahun+bulan), bukan hanya tahun
+  const rentangPenuh = BAdecimal >= cutoffDecimal;
 
   const AVmonth = rentangPenuh ? tmtBulan : AUmonth;
   const AYyear = rentangPenuh ? tmtTahun : AXyear;
