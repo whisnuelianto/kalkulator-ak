@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
 
+
 :root{
   --navy:#0f2a43; --navy2:#163a5c; --accent:#c8963e; --accent2:#a6772c;
   --bg:#f4f6f8; --card:#ffffff; --line:#e2e6ea; --text:#1b2530; --muted:#5b6774;
@@ -121,9 +122,11 @@ footer.appfoot{text-align:center;color:var(--muted);font-size:11.5px;padding:20p
 .divider{height:1px;background:var(--line);margin:16px 0}
 code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 
+
 </style>
 </head>
 <body>
+
 <header class="topbar">
   <div class="logo">AK</div>
   <div>
@@ -194,15 +197,16 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
     <div id="periodePreview" class="period-preview" style="display:none"></div>
 
     <div class="card">
-      <h2>Predikat Kinerja (dalam bulan)</h2>
-      <div class="sub">Jumlah bulan pada tiap kategori predikat kinerja selama periode yang dapat dikonversi. Total ketiga kolom harus sama dengan total bulan periode konversi yang diakui (ditampilkan di hasil setelah dihitung).</div>
-      <div class="grid" style="grid-template-columns:repeat(5,1fr)">
-        <div class="field"><label>Sangat Kurang (bulan)</label><input type="number" min="0" id="f_sk" value="0"></div>
-        <div class="field"><label>Kurang (bulan)</label><input type="number" min="0" id="f_k" value="0"></div>
-        <div class="field"><label>Butuh Perbaikan (bulan)</label><input type="number" min="0" id="f_s" value="0"></div>
-        <div class="field"><label>Baik (bulan)</label><input type="number" min="0" id="f_t" value="0"></div>
-        <div class="field"><label>Sangat Baik (bulan)</label><input type="number" min="0" id="f_u" value="0"></div>
-      </div>
+      <h2>Predikat Kinerja per Periode</h2>
+      <div class="sub">Sesuai penilaian SKP yang biasanya per periode/tahun — pilih predikat kinerja untuk
+      tiap periode di bawah, tidak perlu menghitung total bulan sendiri. Daftar periode muncul otomatis
+      mengikuti TMT Golongan, tanggal Dihitung Sampai, dan batas Pangkat Puncak (bila berlaku).</div>
+      <div id="periodeSegmentsWrap"></div>
+      <input type="hidden" id="f_sk" value="0">
+      <input type="hidden" id="f_k" value="0">
+      <input type="hidden" id="f_s" value="0">
+      <input type="hidden" id="f_t" value="0">
+      <input type="hidden" id="f_u" value="0">
       <div class="hint">Kategori "Kurang" dan "Sangat Kurang" jarang dipakai dalam praktik konversi AK (biasanya predikat minimal Baik yang disyaratkan) — koefisiennya adalah asumsi kerja, dapat diubah di tab Referensi.</div>
       <div id="predikatSumCheck" class="period-preview" style="display:none;margin-top:12px;margin-bottom:0"></div>
     </div>
@@ -443,12 +447,12 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
         khusus (misalnya JF yang jenjangnya mentok di Ahli Madya, bukan sampai Ahli Utama). Admin bisa menambah
         skema baru di tab Referensi.</li>
         <li><b>TMT Golongan</b> dan <b>Dihitung Sampai</b> — isi bulan &amp; tahun. Begitu keempatnya terisi,
-        akan muncul kotak biru menunjukkan <b>berapa total bulan</b> yang harus dibagi ke kolom Predikat Kinerja
-        di bawahnya — pakai angka itu sebagai acuan.</li>
-        <li><b>Predikat Kinerja (dalam bulan)</b> — pecah total bulan dari kotak biru tadi ke 5 kategori sesuai
-        riwayat penilaian kinerja pegawai pada periode tersebut. Contoh: kalau totalnya 24 bulan, dan 12 bulan
-        pertama predikat "Baik" lalu 12 bulan berikutnya "Sangat Baik", isi Baik=12, Sangat Baik=12, sisanya 0.
-        Jumlah kelima kolom <b>harus persis sama</b> dengan total bulan yang ditampilkan.</li>
+        muncul kotak biru berisi total periode yang bisa dikonversi, dan daftar periode per tahun di kartu
+        Predikat Kinerja di bawahnya akan otomatis terbentuk.</li>
+        <li><b>Predikat Kinerja per Periode</b> — untuk setiap periode (biasanya per tahun, mengikuti pola
+        penilaian SKP), pilih satu predikat kinerja dari dropdown-nya (Sangat Baik, Baik, dst). Tidak perlu
+        menghitung jumlah bulan sendiri — sistem otomatis menjumlahkannya begitu semua periode sudah dipilih
+        predikatnya.</li>
         <li>Klik <b>Hitung Angka Kredit</b> untuk melihat hasilnya, lengkap dengan rincian perhitungan dan
         catatan/peringatan bila ada. Klik <b>Simpan ke Riwayat</b> untuk menyimpan hasilnya (tersimpan di
         perangkat Anda sendiri, tidak dibagikan ke pengguna lain).</li>
@@ -600,7 +604,9 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 <footer class="appfoot">Kalkulator Angka Kredit — dibangun berdasarkan KALKULATOR - MASTER.xlsx. Bukan dokumen hukum resmi; selalu verifikasi dengan Permen PAN RB Jabatan Fungsional terkait.</footer>
 <div class="toast" id="toast"></div>
 
+
 <script>
+
 /* ============================================================
    KALKULATOR ANGKA KREDIT JABATAN FUNGSIONAL - WEB APP
    Mesin perhitungan mengikuti logika file Excel KALKULATOR MASTER,
@@ -869,7 +875,33 @@ function computeRecognizedPeriod(inp){
 
   const periodeText = `${monthName(AVmonth)} ${AYyear} - ${monthName(sBulan)} ${sTahun}`;
 
-  return { AL, AM, AN, mkgText, AQ, windowYears, BF, BG, BH, BI, periodeText, warn };
+  return { AL, AM, AN, mkgText, AQ, windowYears, BF, BG, BH, BI, periodeText, warn, AVmonth, AYyear, sBulan, sTahun };
+}
+
+/* Memecah rentang periode yang diakui (AVmonth/AYyear s.d. sBulan/sTahun) menjadi
+   segmen per tahun kalender — tahun pertama & terakhir bisa parsial, tahun di tengah
+   otomatis satu tahun penuh (Januari–Desember). Dipakai untuk form Predikat Kinerja
+   per Periode, supaya pengguna tidak perlu menghitung total bulan secara manual. */
+function generatePeriodSegments(startMonth, startYear, endMonth, endYear){
+  const segments = [];
+  if(startYear == null || endYear == null) return segments;
+  if(startYear > endYear || (startYear === endYear && startMonth > endMonth)) return segments;
+  if(startYear === endYear){
+    segments.push({ year:startYear, startMonth, endMonth, months: endMonth-startMonth+1 });
+  } else {
+    segments.push({ year:startYear, startMonth, endMonth:12, months: 12-startMonth+1 });
+    for(let y = startYear+1; y < endYear; y++){
+      segments.push({ year:y, startMonth:1, endMonth:12, months:12 });
+    }
+    segments.push({ year:endYear, startMonth:1, endMonth, months:endMonth });
+  }
+  return segments.map(s => ({
+    ...s,
+    key: `${s.year}-${s.startMonth}-${s.endMonth}`,
+    label: s.startMonth === s.endMonth
+      ? `${monthName(s.startMonth)} ${s.year}`
+      : `${monthName(s.startMonth)} – ${monthName(s.endMonth)} ${s.year}`
+  }));
 }
 
 function akDasarForCode(skemaKey, code, pangkatTable){
@@ -1235,6 +1267,8 @@ async function simpanRiwayat(){
 function resetForm(){
   document.querySelectorAll('#viewKalkulator input[type=text], #viewKalkulator input[type=number]').forEach(i=>i.value='');
   document.querySelectorAll('#viewKalkulator input[type=checkbox]').forEach(i=>i.checked=false);
+  ['f_s','f_t','f_u','f_k','f_sk'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value='0'; });
+  periodSegments = [];
   setJabatanValue('');
   updateJenisContext();
   updateLivePreview();
@@ -1277,11 +1311,16 @@ function loadHistoryToForm(idx){
   document.getElementById('f_tmt_tahun').value = i.tmtTahun||'';
   document.getElementById('f_sampai_bulan').value = i.sampaiBulan||'';
   document.getElementById('f_sampai_tahun').value = i.sampaiTahun||'';
-  document.getElementById('f_s').value = i.bulanButuhPerbaikan||'';
-  document.getElementById('f_t').value = i.bulanBaik||'';
-  document.getElementById('f_u').value = i.bulanSangatBaik||'';
   updateJenisContext();
   updateLivePreview();
+  // Riwayat menyimpan hanya total per kategori (bukan rincian per periode), jadi daftar
+  // periode di atas akan tampil kosong/belum dipilih — namun total di bawah ini tetap
+  // dipakai apa adanya untuk perhitungan ulang.
+  document.getElementById('f_s').value = i.bulanButuhPerbaikan||0;
+  document.getElementById('f_t').value = i.bulanBaik||0;
+  document.getElementById('f_u').value = i.bulanSangatBaik||0;
+  document.getElementById('f_k').value = i.bulanKurang||0;
+  document.getElementById('f_sk').value = i.bulanSangatKurang||0;
   hitung();
 }
 async function hapusRiwayat(idx){
@@ -1865,6 +1904,8 @@ function updateJenisContext(){
   }
 }
 
+let periodSegments = [];
+
 function updateLivePreview(){
   const el = document.getElementById('periodePreview');
   if(!el) return;
@@ -1879,7 +1920,7 @@ function updateLivePreview(){
     sampaiTahun: val('f_sampai_tahun'),
   };
   const lengkap = inp.jenisPengangkatan && inp.golonganSaatIni && inp.tmtBulan && inp.tmtTahun && inp.sampaiBulan && inp.sampaiTahun;
-  if(!lengkap){ el.innerHTML = ''; el.style.display = 'none'; updatePredikatSumCheck(null); return; }
+  if(!lengkap){ el.innerHTML = ''; el.style.display = 'none'; renderPeriodSegments(null); return; }
 
   try{
     const r = computeRecognizedPeriod(inp);
@@ -1887,18 +1928,98 @@ function updateLivePreview(){
       el.innerHTML = `⚠ ${escapeHtml(r.warn[0])}`;
       el.style.display = 'block';
       el.className = 'period-preview warn';
-      updatePredikatSumCheck(null);
+      renderPeriodSegments(null);
       return;
     }
-    let html = `📅 Periode yang dapat dikonversi: <b>${r.periodeText}</b> — total <b>${r.BF} bulan</b> (${r.BG} Tahun ${r.BH} Bulan). Isi total kolom predikat kinerja di bawah supaya berjumlah <b>${r.BF}</b>.`;
+    let html = `📅 Periode yang dapat dikonversi: <b>${r.periodeText}</b> — total <b>${r.BF} bulan</b> (${r.BG} Tahun ${r.BH} Bulan). Pilih predikat kinerja untuk tiap periode di bawah.`;
     if(r.AQ === "pangkat puncak"){
       html += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #b8d4e8">⚠ <b>Status Pangkat Puncak terdeteksi</b> — masa kepangkatan pada jabatan administrasi ini sudah melewati batas normal, sehingga periode yang diakui dibatasi maksimal <b>${CFG.windowYears.pangkatPuncak} tahun terakhir</b> saja (bukan ${CFG.windowYears.normal} tahun), sesuai Pasal 7 ayat (4) Perka BKN No.3/2023. Bulan-bulan sebelum periode ini tidak ikut dikonversi.</div>`;
     }
     el.innerHTML = html;
     el.style.display = 'block';
     el.className = 'period-preview ok';
-    updatePredikatSumCheck(r.BF);
-  }catch(e){ el.innerHTML=''; el.style.display='none'; updatePredikatSumCheck(null); }
+    renderPeriodSegments(r);
+  }catch(e){ el.innerHTML=''; el.style.display='none'; renderPeriodSegments(null); }
+}
+
+const PREDIKAT_OPTIONS = [
+  { value:'', label:'-- pilih predikat --' },
+  { value:'sangatKurang', label:'Sangat Kurang' },
+  { value:'kurang', label:'Kurang' },
+  { value:'butuhPerbaikan', label:'Butuh Perbaikan' },
+  { value:'baik', label:'Baik' },
+  { value:'sangatBaik', label:'Sangat Baik' },
+];
+const PREDIKAT_TO_FIELD = {
+  sangatKurang: 'f_sk', kurang: 'f_k', butuhPerbaikan: 'f_s', baik: 'f_t', sangatBaik: 'f_u'
+};
+
+function renderPeriodSegments(r){
+  const wrap = document.getElementById('periodeSegmentsWrap');
+  if(!wrap) return;
+
+  if(!r){
+    periodSegments = [];
+    wrap.innerHTML = `<p class="small-muted">Lengkapi Jenis Pengangkatan, Golongan, TMT Golongan, dan tanggal Dihitung Sampai di atas terlebih dahulu — daftar periode akan muncul otomatis di sini.</p>`;
+    updatePredikatSumCheck(null);
+    return;
+  }
+
+  const fresh = generatePeriodSegments(r.AVmonth, r.AYyear, r.sBulan, r.sTahun);
+  // pertahankan pilihan predikat sebelumnya untuk periode yang sama (dikenali lewat key)
+  fresh.forEach(seg => {
+    const prev = periodSegments.find(p => p.key === seg.key);
+    seg.predikat = prev ? prev.predikat : '';
+  });
+  periodSegments = fresh;
+
+  if(!periodSegments.length){
+    wrap.innerHTML = `<p class="small-muted">Rentang tanggal belum valid — periksa kembali TMT Golongan dan tanggal Dihitung Sampai.</p>`;
+    updatePredikatSumCheck(null);
+    return;
+  }
+
+  wrap.innerHTML = `<div class="table-scroll" style="max-height:none"><table class="data">
+    <thead><tr><th>Periode</th><th>Predikat Kinerja</th></tr></thead>
+    <tbody>
+    ${periodSegments.map((seg, i) => `
+      <tr>
+        <td>${escapeHtml(seg.label)} <span class="small-muted">(${seg.months} bln)</span></td>
+        <td><select data-seg-idx="${i}" onchange="onSegmentPredikatChange(this)">
+          ${PREDIKAT_OPTIONS.map(o=>`<option value="${o.value}" ${seg.predikat===o.value?'selected':''}>${o.label}</option>`).join("")}
+        </select></td>
+      </tr>`).join("")}
+    </tbody>
+  </table></div>`;
+
+  recomputePredikatTotalsFromSegments();
+  updatePredikatSumCheck(r.BF);
+}
+
+function onSegmentPredikatChange(selectEl){
+  const idx = parseInt(selectEl.dataset.segIdx, 10);
+  if(periodSegments[idx]) periodSegments[idx].predikat = selectEl.value;
+  recomputePredikatTotalsFromSegments();
+  const inp = {
+    jenisPengangkatan: val('f_jenis'), ijazah: val('f_ijazah'), golonganSaatIni: val('f_golongan'),
+    tmtBulan: val('f_tmt_bulan'), tmtTahun: val('f_tmt_tahun'),
+    sampaiBulan: val('f_sampai_bulan'), sampaiTahun: val('f_sampai_tahun'),
+  };
+  try{
+    const r = computeRecognizedPeriod(inp);
+    updatePredikatSumCheck(r.warn && r.warn.length ? null : r.BF);
+  }catch(e){}
+}
+
+function recomputePredikatTotalsFromSegments(){
+  const totals = { sangatKurang:0, kurang:0, butuhPerbaikan:0, baik:0, sangatBaik:0 };
+  periodSegments.forEach(seg => {
+    if(seg.predikat && totals[seg.predikat] !== undefined) totals[seg.predikat] += seg.months;
+  });
+  Object.entries(PREDIKAT_TO_FIELD).forEach(([key, fieldId]) => {
+    const el = document.getElementById(fieldId);
+    if(el) el.value = totals[key];
+  });
 }
 
 function updatePredikatSumCheck(BF){
@@ -1908,11 +2029,11 @@ function updatePredikatSumCheck(BF){
   const S=num(val('f_s')), T=num(val('f_t')), U=num(val('f_u')), K=num(val('f_k')), SK=num(val('f_sk'));
   const sum = S+T+U+K+SK;
   if(sum === BF){
-    el.innerHTML = `✅ Jumlah bulan yang diisi (<b>${sum}</b>) sudah sesuai dengan periode terdeteksi (<b>${BF}</b> bulan).`;
+    el.innerHTML = `✅ Semua periode (<b>${sum}</b> bulan) sudah diberi predikat kinerja.`;
     el.className = 'period-preview ok';
   } else {
     const selisih = BF - sum;
-    el.innerHTML = `⚠ Jumlah bulan yang diisi (<b>${sum}</b>) belum sama dengan periode terdeteksi (<b>${BF}</b> bulan). ${selisih>0 ? `Kurang <b>${selisih}</b> bulan lagi.` : `Kelebihan <b>${Math.abs(selisih)}</b> bulan.`}`;
+    el.innerHTML = `⚠ Baru <b>${sum}</b> dari <b>${BF}</b> bulan yang sudah diberi predikat. ${selisih>0 ? `Masih ada <b>${selisih}</b> bulan yang periodenya belum dipilih predikatnya.` : ``}`;
     el.className = 'period-preview warn';
   }
   el.style.display = 'block';
@@ -2019,7 +2140,7 @@ async function initApp(){
     renderHistory();
     renderRefTables();
     renderCustomRules();
-    ['f_jenis','f_ijazah','f_golongan','f_tmt_bulan','f_tmt_tahun','f_sampai_bulan','f_sampai_tahun','f_s','f_t','f_u','f_k','f_sk'].forEach(id=>{
+    ['f_jenis','f_ijazah','f_golongan','f_tmt_bulan','f_tmt_tahun','f_sampai_bulan','f_sampai_tahun'].forEach(id=>{
       const el = document.getElementById(id);
       if(el) el.addEventListener('input', updateLivePreview);
       if(el) el.addEventListener('change', updateLivePreview);
@@ -2046,6 +2167,7 @@ async function initApp(){
   }
 }
 document.addEventListener('DOMContentLoaded', initApp);
+
 
 </script>
 </body>
