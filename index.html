@@ -206,6 +206,15 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
           <select id="f_skema"></select>
           <div class="hint">Sesuaikan dengan rentang jenjang JF ini (lihat Lampiran II angka 2, Perka BKN No.3/2023). Kosongkan untuk otomatis.</div>
         </div>
+        <div class="field" id="fieldSebabPK" style="display:none">
+          <label>Sebab Diberhentikan dari JF</label>
+          <select id="f_sebab_pk">
+            <option value="administrasi">Ditugaskan ke Jabatan Administrasi (JPT/Administrator/Pengawas/Pelaksana)</option>
+            <option value="tugas_belajar">Tugas Belajar Lebih dari 6 Bulan</option>
+          </select>
+          <div class="hint">Pasal 22 (Tugas Belajar) vs Pasal 23-24 (jabatan administrasi) Perka BKN No.3/2023 —
+          rumusnya berbeda.</div>
+        </div>
         <div class="field" id="fieldJenjangAsal" style="display:none">
           <label>Jenjang Sebelum Diberhentikan</label>
           <select id="f_jenjang_asal"></select>
@@ -216,8 +225,16 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
           <label>AK Kumulatif Terakhir Sebelum Diberhentikan</label>
           <input type="number" step="any" min="0" id="f_ak_kumulatif" value="0">
           <div class="hint">Angka Kredit Kumulatif yang dimiliki dalam jenjang jabatannya saat diberhentikan
-          dulu (Pasal 22 &amp; 24 Perka BKN No.3/2023). Hanya dipakai jika Jenjang Dituju SAMA dengan Jenjang
-          Sebelum Diberhentikan.</div>
+          dulu (Pasal 22 &amp; 24 Perka BKN No.3/2023).</div>
+        </div>
+        <div class="field" id="fieldAdaKinerjaTambahan" style="display:none">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="f_ada_kinerja_tambahan" style="width:16px;height:16px;margin:0">
+            Ada penilaian kinerja tugas JF selama Tugas Belajar?
+          </label>
+          <div class="hint">Biasanya TIDAK ADA (fokus studi, bukan tugas JF) — sehingga AK cukup dari AK
+          Kumulatif Terakhir saja. Centang hanya bila memang ada penilaian kinerja tugas di bidang JF yang
+          resmi dilakukan selama tugas belajar (Pasal 22 ayat 2 &amp; 3).</div>
         </div>
       </div>
     </div>
@@ -601,7 +618,18 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       PANGKAT, bukan cakupan kalkulator ini, sehingga tidak dilacak di sini.</p>
 
       <h2 style="margin-top:20px">Pengangkatan Kembali</h2>
-      <p>Berdasarkan Pasal 22 &amp; 24 Perka BKN No.3/2023, AK Pengangkatan Kembali memakai <b>AK Kumulatif
+      <p>Ada <b>dua sebab berbeda</b> yang bisa memicu Pengangkatan Kembali, dengan rumus yang berbeda —
+      pilih di kolom "Sebab Diberhentikan dari JF":</p>
+
+      <h3 style="margin-top:14px;font-size:13px">A. Tugas Belajar Lebih dari 6 Bulan (Pasal 22)</h3>
+      <p>Rumusnya sederhana: AK = <b>AK Kumulatif Terakhir</b> saja, karena selama tugas belajar biasanya
+      TIDAK ADA penilaian kinerja tugas JF (fokusnya studi). Kolom "Ada penilaian kinerja tambahan?" defaultnya
+      TIDAK dicentang — centang hanya bila memang ada penilaian kinerja tugas JF resmi selama tugas belajar,
+      barulah muncul form Masa Kerja &amp; Predikat Kinerja untuk konversi tambahannya. Tidak ada urusan
+      "jenjang sebelum diberhentikan vs sekarang" untuk kasus ini.</p>
+
+      <h3 style="margin-top:14px;font-size:13px">B. Ditugaskan ke Jabatan Administrasi (Pasal 23 &amp; 24)</h3>
+      <p>Berdasarkan Pasal 23 &amp; 24 Perka BKN No.3/2023, AK memakai <b>AK Kumulatif
       Terakhir</b> yang dimiliki dalam jenjang jabatannya (bukan AK Dasar dari tabel golongan) — berbeda dari
       Perpindahan maupun Pengangkatan Pertama.</p>
       <p><b>Penting soal "Golongan Saat Ini" dan "TMT Golongan" pada mode ini:</b> isi dengan golongan/pangkat
@@ -1167,11 +1195,38 @@ function calcAK(inp){
   } else if(BJ==null || BL==null){
     statusHitung = "DATA_TIDAK_LENGKAP";
   } else if(isPengangkatanKembali){
-    // Pasal 22 & 24 Perka BKN No.3/2023: AK pengangkatan kembali memakai AK Kumulatif Terakhir yang
-    // dimiliki DALAM JENJANG JABATANNYA (jenjang sebelum diberhentikan), ditambah konversi predikat
-    // kinerja pada masa kepangkatan yang diakui (maksimal 4 tahun, tanpa pengecualian pangkat puncak).
-    // Bila jenjang dituju sekarang LEBIH TINGGI dari jenjang sebelum diberhentikan (golongan sudah naik
-    // selama tidak menjabat JF), tahap penyesuaian itu memakai AK Dasar standar, BUKAN AK Kumulatif lagi.
+    if(inp.sebabPK === "tugas_belajar"){
+      // Pasal 22 Perka BKN No.3/2023: pengangkatan kembali setelah Tugas Belajar >6 bulan.
+      // AK = AK Kumulatif Terakhir, DAPAT ditambah konversi penilaian kinerja tugas JF selama
+      // tugas belajar — TAPI biasanya TIDAK ADA penilaian semacam itu (fokus studi, bukan tugas JF),
+      // sehingga defaultnya cukup AK Kumulatif Terakhir saja. Tidak ada urusan jenjang sebelum
+      // diberhentikan vs sekarang (tidak seperti kasus ditugaskan ke jabatan administrasi).
+      const akKumulatif = num(inp.akKumulatifTerakhir) || 0;
+      if(!inp.adaKinerjaTambahan){
+        totalAK = akKumulatif;
+        notes.push(`Pengangkatan Kembali setelah Tugas Belajar (Pasal 22 Perka BKN No.3/2023) — AK = AK Kumulatif Terakhir sebesar ${fmt(akKumulatif)}, tanpa tambahan konversi kinerja (tidak ada penilaian kinerja tugas JF selama tugas belajar).`);
+      } else if(!jumlahBulanCocok){
+        statusHitung = "TIDAK_COCOK";
+        warn.push(`Jumlah bulan predikat kinerja yang diisi (${sumSTU} bulan) belum sama dengan jumlah bulan periode yang dapat dikonversi (${BF} bulan).`);
+      } else if(normaAK==null){
+        statusHitung = "TIDAK_COCOK";
+        warn.push(`Norma AK Tahunan untuk jenjang "${inp.jenjangDituju}" tidak ditemukan di Referensi.`);
+      } else {
+        AB = (S/12*num(CFG.koefisien.butuhPerbaikan)) * normaAK;
+        AC = (T/12*num(CFG.koefisien.baik)) * normaAK;
+        AD = (U/12*num(CFG.koefisien.sangatBaik)) * normaAK;
+        AK_ = (K/12*num(CFG.predikatEkstra.kurang.koefisien)) * normaAK;
+        ASK_ = (SK/12*num(CFG.predikatEkstra.sangatKurang.koefisien)) * normaAK;
+        totalAK = akKumulatif + AB + AC + AD + AK_ + ASK_;
+        notes.push(`Pengangkatan Kembali setelah Tugas Belajar (Pasal 22 Perka BKN No.3/2023) — AK = AK Kumulatif Terakhir (${fmt(akKumulatif)}) + konversi penilaian kinerja tugas JF selama tugas belajar.`);
+      }
+    } else {
+    // Pasal 23 & 24 Perka BKN No.3/2023: AK pengangkatan kembali karena ditugaskan ke jabatan
+    // administrasi memakai AK Kumulatif Terakhir yang dimiliki DALAM JENJANG JABATANNYA (jenjang
+    // sebelum diberhentikan), ditambah konversi predikat kinerja pada masa kepangkatan yang diakui
+    // (maksimal 4 tahun, tanpa pengecualian pangkat puncak). Bila jenjang dituju sekarang LEBIH
+    // TINGGI dari jenjang sebelum diberhentikan (golongan sudah naik selama tidak menjabat JF),
+    // tahap penyesuaian itu memakai AK Dasar standar, BUKAN AK Kumulatif lagi.
     if(!jumlahBulanCocok){
       statusHitung = "TIDAK_COCOK";
       warn.push(`Jumlah bulan predikat kinerja yang diisi (${sumSTU} bulan) belum sama dengan jumlah bulan periode yang dapat dikonversi (${BF} bulan).`);
@@ -1190,7 +1245,7 @@ function calcAK(inp){
 
       if(samaJenjang){
         akDasar = num(inp.akKumulatifTerakhir) || 0;
-        notes.push(`Jenjang dituju sama dengan jenjang sebelum diberhentikan — ditambahkan AK Kumulatif Terakhir sebesar ${fmt(akDasar)} (Pasal 22 &amp; 24 Perka BKN No.3/2023), bukan AK Dasar dari tabel golongan.`);
+        notes.push(`Jenjang dituju sama dengan jenjang sebelum diberhentikan — ditambahkan AK Kumulatif Terakhir sebesar ${fmt(akDasar)} (Pasal 23 &amp; 24 Perka BKN No.3/2023), bukan AK Dasar dari tabel golongan.`);
       } else if(BJ === BL){
         akDasar = akDasarFromSkema(skemaKey, inp.golonganSaatIni) ?? 0;
         notes.push(`Penyesuaian ke jenjang lebih tinggi dari sebelum diberhentikan ("${jenjangAsal}" &rarr; "${inp.jenjangDituju}") — memakai AK Dasar standar dari golongan "${inp.golonganSaatIni}" sebesar ${fmt(akDasar)}. AK Kumulatif Terakhir TIDAK ditambahkan lagi di tahap ini (sudah dipakai saat pengangkatan kembali pertama).`);
@@ -1210,6 +1265,7 @@ function calcAK(inp){
           notes.push(`Lihat tabel "Roadmap Kenaikan Jenjang Berikutnya" untuk proyeksi AK bila kelak jenjang dinaikkan lagi menyesuaikan golongan.`);
         }
       }
+    }
     }
   } else if(isPromosi){
     // Pasal 10 Perka BKN No.3/2023: AK Promosi HANYA dihitung dari predikat kinerja Sangat Baik
@@ -1482,6 +1538,8 @@ function getFormInput(){
     bulanSangatKurang: val('f_sk'),
     skemaAkDasar: val('f_skema'),
     jenjangAsal: val('f_jenjang_asal'),
+    sebabPK: val('f_sebab_pk'),
+    adaKinerjaTambahan: isChecked('f_ada_kinerja_tambahan'),
     akKumulatifTerakhir: val('f_ak_kumulatif'),
     asalPerpindahan: val('f_asal_perpindahan'),
     akJfSebelumnya: val('f_ak_jf_sebelumnya'),
@@ -2085,9 +2143,15 @@ function updateJenisContext(){
 
   const fieldJenjangAsalEl = document.getElementById('fieldJenjangAsal');
   const fieldAkKumulatifEl = document.getElementById('fieldAkKumulatif');
+  const fieldSebabPKEl = document.getElementById('fieldSebabPK');
+  const fieldAdaKinerjaTambahanEl = document.getElementById('fieldAdaKinerjaTambahan');
   const isPK = jenis === "Pengangkatan Kembali";
-  if(fieldJenjangAsalEl) fieldJenjangAsalEl.style.display = isPK ? 'block' : 'none';
+  const sebabPK = isPK ? val('f_sebab_pk') : 'administrasi';
+  const isTubel = isPK && sebabPK === 'tugas_belajar';
+  if(fieldSebabPKEl) fieldSebabPKEl.style.display = isPK ? 'block' : 'none';
   if(fieldAkKumulatifEl) fieldAkKumulatifEl.style.display = isPK ? 'block' : 'none';
+  if(fieldJenjangAsalEl) fieldJenjangAsalEl.style.display = (isPK && !isTubel) ? 'block' : 'none';
+  if(fieldAdaKinerjaTambahanEl) fieldAdaKinerjaTambahanEl.style.display = isTubel ? 'block' : 'none';
 
   const fieldAsalPerpindahanEl = document.getElementById('fieldAsalPerpindahan');
   const isPerpindahan = jenis === "Perpindahan";
@@ -2217,6 +2281,12 @@ function updateLivePreview(){
   }
   if(val('f_jenis') === 'Penyetaraan' && val('f_mode_penyetaraan') === 'koreksi_inpassing'){
     el.innerHTML = `ℹ Mode Koreksi Inpassing Lama — isi "AK Inpassing Lama" dan "Golongan Saat Diangkat ke JF" di atas, tidak perlu Masa Kerja Golongan atau Predikat Kinerja.`;
+    el.style.display = 'block'; el.className = 'period-preview ok';
+    renderPeriodSegments(null);
+    return;
+  }
+  if(val('f_jenis') === 'Pengangkatan Kembali' && val('f_sebab_pk') === 'tugas_belajar' && !isChecked('f_ada_kinerja_tambahan')){
+    el.innerHTML = `ℹ Pengangkatan Kembali setelah Tugas Belajar — cukup isi "AK Kumulatif Terakhir" di atas. Centang "Ada penilaian kinerja tambahan?" bila memang ada konversi kinerja tugas JF yang perlu ditambahkan.`;
     el.style.display = 'block'; el.className = 'period-preview ok';
     renderPeriodSegments(null);
     return;
@@ -2480,6 +2550,10 @@ async function initApp(){
     if(fAsalPerpindahanEl) fAsalPerpindahanEl.addEventListener('change', ()=>{ updateJenisContext(); updateLivePreview(); });
     const fModePenyetaraanEl = document.getElementById('f_mode_penyetaraan');
     if(fModePenyetaraanEl) fModePenyetaraanEl.addEventListener('change', ()=>{ updateJenisContext(); updateLivePreview(); });
+    const fSebabPKEl = document.getElementById('f_sebab_pk');
+    if(fSebabPKEl) fSebabPKEl.addEventListener('change', ()=>{ updateJenisContext(); updateLivePreview(); });
+    const fAdaKinerjaTambahanEl = document.getElementById('f_ada_kinerja_tambahan');
+    if(fAdaKinerjaTambahanEl) fAdaKinerjaTambahanEl.addEventListener('change', ()=>{ updateJenisContext(); updateLivePreview(); });
     updateJenisContext();
     document.querySelectorAll('nav.tabs button').forEach(b=>{
       b.addEventListener('click', async ()=>{
