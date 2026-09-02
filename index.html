@@ -813,10 +813,33 @@ function mergeConfig(loaded, defaults){
   // dari DEFAULT_CONFIG yang belum ada di data lama, supaya kode tidak crash saat
   // mengakses field baru (mis. skemaAkDasar, kebutuhanKumulatifJenjang) yang belum
   // pernah tersimpan sebelumnya.
+  //
+  // Penting: ini bukan cuma soal field yang HILANG TOTAL, tapi juga field yang SUDAH
+  // ADA di data lama tapi ISINYA kurang lengkap dibanding versi terbaru — misalnya
+  // daftar pilihan (array) yang baru ditambah satu opsi (seperti "Promosi"), atau
+  // objek kecil (seperti windowYears) yang baru ditambah satu sub-kunci. Kalau cuma
+  // "ada/tidak ada key" yang dicek, penambahan seperti itu akan ketiban data lama
+  // dan seolah hilang. Karena itu, untuk field berupa array & objek biasa, dilakukan
+  // penggabungan (bukan sekadar timpa), supaya penambahan baru di kode otomatis ikut
+  // muncul tanpa menghapus penyesuaian yang sudah dibuat admin.
   const merged = JSON.parse(JSON.stringify(defaults));
   if(loaded && typeof loaded === 'object'){
     for(const key of Object.keys(defaults)){
-      if(loaded[key] !== undefined) merged[key] = loaded[key];
+      if(loaded[key] === undefined) continue;
+      const defVal = defaults[key], loadVal = loaded[key];
+      if(Array.isArray(defVal) && Array.isArray(loadVal)){
+        // gabungkan: pertahankan urutan/isi tersimpan, tambahkan opsi baru dari default yang belum ada
+        const union = [...loadVal];
+        defVal.forEach(item => { if(!union.includes(item)) union.push(item); });
+        merged[key] = union;
+      } else if(defVal && typeof defVal === 'object' && !Array.isArray(defVal) &&
+                 loadVal && typeof loadVal === 'object' && !Array.isArray(loadVal)){
+        // gabungkan satu tingkat: sub-kunci baru dari default ikut masuk, sub-kunci yang
+        // sudah diubah admin tetap dipakai dari data tersimpan
+        merged[key] = { ...defVal, ...loadVal };
+      } else {
+        merged[key] = loadVal;
+      }
     }
   }
   return merged;
