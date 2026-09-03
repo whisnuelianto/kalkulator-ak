@@ -248,7 +248,8 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
           <label>AK Kumulatif Terakhir Sebelum Diberhentikan</label>
           <input type="number" step="any" min="0" id="f_ak_kumulatif" value="0">
           <div class="hint">Angka Kredit Kumulatif yang dimiliki dalam jenjang jabatannya saat diberhentikan
-          dulu (Pasal 22 &amp; 24 Perka BKN No.3/2023).</div>
+          dulu (Pasal 22 untuk kasus Tugas Belajar, atau Pasal 23 &amp; 24 untuk kasus jabatan administrasi —
+          Perka BKN No.3/2023).</div>
         </div>
         <div class="field" id="fieldAdaKinerjaTambahan" style="display:none">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -288,7 +289,8 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       <h2>Predikat Kinerja per Periode</h2>
       <div class="sub">Sesuai penilaian SKP yang biasanya per periode/tahun — pilih predikat kinerja untuk
       tiap periode di bawah, tidak perlu menghitung total bulan sendiri. Daftar periode muncul otomatis
-      mengikuti TMT Golongan, tanggal Dihitung Sampai, dan batas Pangkat Puncak (bila berlaku).</div>
+      mengikuti tanggal yang diisi pada kartu di atas (TMT Golongan atau Masa Tugas Belajar, tergantung
+      skenario), termasuk batas Pangkat Puncak/4 tahun bila berlaku untuk skenario tersebut.</div>
       <div id="periodeSegmentsWrap"></div>
       <input type="hidden" id="f_sk" value="0">
       <input type="hidden" id="f_k" value="0">
@@ -534,9 +536,12 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
         <li><b>Skema AK Dasar</b> — biarkan "(otomatis sesuai jalur)" kecuali Anda tahu JF ini memakai skema
         khusus (misalnya JF yang jenjangnya mentok di Ahli Madya, bukan sampai Ahli Utama). Admin bisa menambah
         skema baru di tab Referensi.</li>
-        <li><b>TMT Golongan</b> dan <b>Dihitung Sampai</b> — isi bulan &amp; tahun. Begitu keempatnya terisi,
-        muncul kotak biru berisi total periode yang bisa dikonversi, dan daftar periode per tahun di kartu
-        Predikat Kinerja di bawahnya akan otomatis terbentuk.</li>
+        <li><b>TMT Golongan</b> dan <b>Dihitung Sampai</b> — isi bulan &amp; tahun (label kolom ini menyesuaikan
+        otomatis, misalnya jadi "Masa Tugas Belajar" untuk Pengangkatan Kembali sebab Tugas Belajar). Begitu
+        keempatnya terisi, muncul kotak biru berisi total periode yang bisa dikonversi, dan daftar periode per
+        tahun di kartu Predikat Kinerja di bawahnya akan otomatis terbentuk. Untuk mode tertentu (Perpindahan
+        Antar JF, Koreksi Inpassing Lama, Tugas Belajar tanpa kinerja tambahan), kartu ini &amp; Predikat Kinerja
+        otomatis disembunyikan karena tidak diperlukan.</li>
         <li><b>Predikat Kinerja per Periode</b> — untuk setiap periode (biasanya per tahun, mengikuti pola
         penilaian SKP), pilih satu predikat kinerja dari dropdown-nya (Sangat Baik, Baik, dst). Tidak perlu
         menghitung jumlah bulan sendiri — sistem otomatis menjumlahkannya begitu semua periode sudah dipilih
@@ -1303,6 +1308,7 @@ function calcAK(inp){
         notes.push(`Jenjang dituju sama dengan jenjang sebelum diberhentikan — ditambahkan AK Kumulatif Terakhir sebesar ${fmt(akDasar)} (Pasal 23 &amp; 24 Perka BKN No.3/2023), bukan AK Dasar dari tabel golongan.`);
       } else if(BJ === BL){
         akDasar = akDasarFromSkema(skemaKey, inp.golonganSaatIni) ?? 0;
+        if(inp.golonganTerendah === "Ya") akDasar = 0;
         notes.push(`Penyesuaian ke jenjang lebih tinggi dari sebelum diberhentikan ("${jenjangAsal}" &rarr; "${inp.jenjangDituju}") — memakai AK Dasar standar dari golongan "${inp.golonganSaatIni}" sebesar ${fmt(akDasar)}. AK Kumulatif Terakhir TIDAK ditambahkan lagi di tahap ini (sudah dipakai saat pengangkatan kembali pertama).`);
       } else if(BJ < BL){
         akDasar = akDasarForCode(skemaKey, BJ, pangkatTable);
@@ -2230,11 +2236,15 @@ function updateJenisContext(){
   const lblGolonganEl = document.getElementById('lbl_golongan_saatini');
   const hintGolonganEl = document.getElementById('hint_golongan_saatini');
   if(lblGolonganEl){
-    lblGolonganEl.textContent = isKoreksiInpassingUI ? 'Golongan Saat Diangkat ke JF (Inpassing)' : 'Golongan Saat Ini';
+    lblGolonganEl.textContent = isKoreksiInpassingUI ? 'Golongan Saat Diangkat ke JF (Inpassing)'
+      : isTubel ? 'Golongan Saat Ini (bukan patokan periode)'
+      : 'Golongan Saat Ini';
   }
   if(hintGolonganEl){
     hintGolonganEl.textContent = isKoreksiInpassingUI
       ? 'Golongan ruang PADA SAAT diangkat ke JF lewat inpassing dulu — bukan golongan sekarang bila sudah pernah naik pangkat biasa sejak itu.'
+      : isTubel
+      ? 'Untuk Tugas Belajar, golongan TIDAK memengaruhi rumus AK sama sekali (bukan seperti TMT pangkat pada kasus jabatan administrasi) — isi sekadar golongan saat ini, hanya dipakai sistem untuk mengenali jalur Keahlian/Keterampilan.'
       : 'Golongan ruang (pangkat) yang dimiliki pegawai saat ini, mis. III/a.';
   }
 
@@ -2249,6 +2259,25 @@ function updateJenisContext(){
   const ctxEl = document.getElementById('mkgContextHint');
   if(!titleEl) return;
 
+  const isAntarJfUI = isPerpindahan && asalPerpindahan === 'antar_jf';
+  if(isAntarJfUI){
+    titleEl.textContent = "Masa Kerja Golongan (Tidak Diperlukan)";
+    subEl.textContent = "Perpindahan antar Jabatan Fungsional membawa AK langsung dari JF sebelumnya — kartu ini dan Predikat Kinerja tidak perlu diisi.";
+    if(ctxEl){ ctxEl.style.display = 'none'; }
+    return;
+  }
+  if(isKoreksiInpassingUI){
+    titleEl.textContent = "Masa Kerja Golongan (Tidak Diperlukan)";
+    subEl.textContent = "Mode Koreksi Inpassing Lama menghitung langsung dari AK Inpassing Lama + AK Dasar golongan — kartu ini dan Predikat Kinerja tidak perlu diisi.";
+    if(ctxEl){ ctxEl.style.display = 'none'; }
+    return;
+  }
+  if(isPK && sebabPK === 'tugas_belajar' && !isChecked('f_ada_kinerja_tambahan')){
+    titleEl.textContent = "Masa Kerja Golongan (Tidak Diperlukan)";
+    subEl.textContent = "Tanpa penilaian kinerja tambahan, AK cukup dari AK Kumulatif Terakhir — kartu ini dan Predikat Kinerja tidak perlu diisi.";
+    if(ctxEl){ ctxEl.style.display = 'none'; }
+    return;
+  }
   if(isPK && sebabPK === 'tugas_belajar'){
     titleEl.textContent = "Masa Tugas Belajar";
     subEl.textContent = "Tanggal mulai Tugas Belajar, sampai selesai/diangkat kembali — TIDAK dibatasi 4 tahun atau aturan Pangkat Puncak (berbeda dari kasus jabatan administrasi).";
@@ -2297,7 +2326,7 @@ function updateJenisContext(){
       hintTmtT: "Tahun mulai berlaku golongan terbaru tersebut.",
       hintSampaiB: "Bulan diangkat KEMBALI ke dalam Jabatan Fungsional (biasanya bulan usulan/sekarang).",
       hintSampaiT: "Tahun diangkat KEMBALI ke dalam Jabatan Fungsional.",
-      ctx: "ℹ Sesuai Pasal 22 &amp; 24 Perka BKN No.3/2023: dihitung dari predikat kinerja terhitung mulai TMT golongan TERBARU (bukan golongan awal saat diberhentikan) sampai diangkat kembali, ditambah AK Dasar/AK Kumulatif. Jika masa tersebut lebih dari 4 tahun, konversi tetap dibatasi maksimal 4 tahun (otomatis dihitung sistem)."
+      ctx: "ℹ Sesuai Pasal 23 &amp; 24 Perka BKN No.3/2023 (ditugaskan ke jabatan administrasi): dihitung dari predikat kinerja terhitung mulai TMT golongan TERBARU (bukan golongan awal saat diberhentikan) sampai diangkat kembali, ditambah AK Dasar/AK Kumulatif. Jika masa tersebut lebih dari 4 tahun, konversi tetap dibatasi maksimal 4 tahun (otomatis dihitung sistem)."
     },
     "Penyetaraan": {
       title: "Masa Kepangkatan (untuk Tabel Penyetaraan)",
