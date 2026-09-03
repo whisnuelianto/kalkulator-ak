@@ -625,10 +625,17 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       <p>Rumusnya sederhana: AK = <b>AK Kumulatif Terakhir</b> saja, karena selama tugas belajar biasanya
       TIDAK ADA penilaian kinerja tugas JF (fokusnya studi). Kolom "Ada penilaian kinerja tambahan?" defaultnya
       TIDAK dicentang — centang hanya bila memang ada penilaian kinerja tugas JF resmi selama tugas belajar,
-      barulah muncul form Masa Kerja &amp; Predikat Kinerja untuk konversi tambahannya. Tidak ada urusan
-      "jenjang sebelum diberhentikan vs sekarang" untuk kasus ini.</p>
+      barulah muncul form Masa Tugas Belajar &amp; Predikat Kinerja untuk konversi tambahannya. Tidak ada urusan
+      "jenjang sebelum diberhentikan vs sekarang" untuk kasus ini, dan berbeda dari kasus jabatan administrasi
+      (Bagian B) — <b>masa Tugas Belajar dihitung apa adanya dari tanggal mulai s.d. selesai, TIDAK dibatasi
+      4 tahun maupun aturan Pangkat Puncak</b> (Pasal 22 tidak mengatur pembatasan tersebut).</p>
 
       <h3 style="margin-top:14px;font-size:13px">B. Ditugaskan ke Jabatan Administrasi (Pasal 23 &amp; 24)</h3>
+      <p>Untuk kasus ini, berapa pun golongan spesifik yang dipegang di dalam jenjang yang sama (mis. naik dari
+      III/c ke III/d, tapi jenjangnya tetap Ahli Muda), <b>TIDAK ada AK Dasar tambahan dari tabel golongan</b> —
+      formulanya tetap hanya AK Kumulatif Terakhir + konversi kinerja, sama seperti dicontohkan Sdri. Ratih.
+      AK Dasar dari tabel golongan hanya relevan untuk tahap <i>penyesuaian ke jenjang yang lebih tinggi</i>
+      dari jenjang semula (lihat poin kedua di bawah).</p>
       <p>Berdasarkan Pasal 23 &amp; 24 Perka BKN No.3/2023, AK memakai <b>AK Kumulatif
       Terakhir</b> yang dimiliki dalam jenjang jabatannya (bukan AK Dasar dari tabel golongan) — berbeda dari
       Perpindahan maupun Pengangkatan Pertama.</p>
@@ -1161,6 +1168,7 @@ function calcAK(inp){
   const isPromosi = inp.jenisPengangkatan === "Promosi";
   const isAntarJF = inp.jenisPengangkatan === "Perpindahan" && inp.asalPerpindahan === "antar_jf";
   const isKoreksiInpassing = inp.jenisPengangkatan === "Penyetaraan" && inp.modePenyetaraan === "koreksi_inpassing";
+  const isTubel = inp.jenisPengangkatan === "Pengangkatan Kembali" && inp.sebabPK === "tugas_belajar";
   const normaAK = CFG.normaAkTahunan[inp.jenjangDituju];
 
   let AB=null, AC=null, AD=null, AK_=null, ASK_=null, akDasar=null, totalAK=null, statusHitung="OK";
@@ -1202,12 +1210,16 @@ function calcAK(inp){
       // sehingga defaultnya cukup AK Kumulatif Terakhir saja. Tidak ada urusan jenjang sebelum
       // diberhentikan vs sekarang (tidak seperti kasus ditugaskan ke jabatan administrasi).
       const akKumulatif = num(inp.akKumulatifTerakhir) || 0;
+      // Periode Tugas Belajar dihitung APA ADANYA dari tanggal mulai s.d. selesai (AL, mentah) —
+      // TIDAK memakai aturan batas 4 tahun atau Pangkat Puncak yang berlaku untuk kasus jabatan
+      // administrasi (Pasal 22 tidak mengatur pembatasan tersebut).
+      const jumlahBulanCocokTubel = sumSTU === AL;
       if(!inp.adaKinerjaTambahan){
         totalAK = akKumulatif;
         notes.push(`Pengangkatan Kembali setelah Tugas Belajar (Pasal 22 Perka BKN No.3/2023) — AK = AK Kumulatif Terakhir sebesar ${fmt(akKumulatif)}, tanpa tambahan konversi kinerja (tidak ada penilaian kinerja tugas JF selama tugas belajar).`);
-      } else if(!jumlahBulanCocok){
+      } else if(!jumlahBulanCocokTubel){
         statusHitung = "TIDAK_COCOK";
-        warn.push(`Jumlah bulan predikat kinerja yang diisi (${sumSTU} bulan) belum sama dengan jumlah bulan periode yang dapat dikonversi (${BF} bulan).`);
+        warn.push(`Jumlah bulan predikat kinerja yang diisi (${sumSTU} bulan) belum sama dengan lama masa Tugas Belajar (${AL} bulan, dari tanggal mulai s.d. selesai/diangkat kembali — tidak dibatasi 4 tahun seperti kasus jabatan administrasi).`);
       } else if(normaAK==null){
         statusHitung = "TIDAK_COCOK";
         warn.push(`Norma AK Tahunan untuk jenjang "${inp.jenjangDituju}" tidak ditemukan di Referensi.`);
@@ -1428,6 +1440,8 @@ function calcAK(inp){
 
   const derived = (isAntarJF || isKoreksiInpassing)
     ? {BJ,BL,BM,BK,BO,BP,CE,periodeText:"Tidak relevan (bawa langsung)",BF:0,BG:0,BH:0,BI:0,mkgText:"Tidak relevan (bawa langsung)",AL:0,skemaKey,skemaLabel:CFG.skemaAkDasar[skemaKey]?.label}
+    : isTubel
+    ? {BJ,BL,BM,BK,BO,BP,CE,periodeText:`Masa Tugas Belajar (${AL} bulan)`,BF:AL,BG:Math.floor(AL/12),BH:((AL%12)+12)%12,BI:0,mkgText,AL,skemaKey,skemaLabel:CFG.skemaAkDasar[skemaKey]?.label}
     : {BJ,BL,BM,BK,BO,BP,CE,periodeText,BF,BG,BH,BI,mkgText,AL,skemaKey,skemaLabel:CFG.skemaAkDasar[skemaKey]?.label};
   const base = {AB,AC,AD,akDasar,totalAK,statusHitung};
   const {result, applied} = applyCustomRules(inp, derived, base);
@@ -1442,7 +1456,9 @@ function calcAK(inp){
     statusHitung: result.statusHitung,
     notes, warn,
     appliedRules: applied,
-    sumSTU: (isAntarJF||isKoreksiInpassing) ? 0 : sumSTU, jumlahBulanCocok: (isAntarJF||isKoreksiInpassing) ? true : jumlahBulanCocok, BF: (isAntarJF||isKoreksiInpassing) ? 0 : BF, roadmap
+    sumSTU: (isAntarJF||isKoreksiInpassing) ? 0 : sumSTU,
+    jumlahBulanCocok: (isAntarJF||isKoreksiInpassing) ? true : (isTubel ? (sumSTU===AL) : jumlahBulanCocok),
+    BF: (isAntarJF||isKoreksiInpassing) ? 0 : (isTubel ? AL : BF), roadmap
   };
 }
 
@@ -2190,6 +2206,22 @@ function updateJenisContext(){
   const ctxEl = document.getElementById('mkgContextHint');
   if(!titleEl) return;
 
+  if(isPK && sebabPK === 'tugas_belajar'){
+    titleEl.textContent = "Masa Tugas Belajar";
+    subEl.textContent = "Tanggal mulai Tugas Belajar, sampai selesai/diangkat kembali — TIDAK dibatasi 4 tahun atau aturan Pangkat Puncak (berbeda dari kasus jabatan administrasi).";
+    if(lblTmt) lblTmt.textContent = "Mulai Tugas Belajar — Bulan (1-12)";
+    if(lblSampai) lblSampai.textContent = "Selesai/Diangkat Kembali — Bulan (1-12)";
+    if(hintTmtB) hintTmtB.textContent = "Bulan mulai menjalani Tugas Belajar.";
+    if(hintTmtT) hintTmtT.textContent = "Tahun mulai menjalani Tugas Belajar.";
+    if(hintSampaiB) hintSampaiB.textContent = "Bulan selesai Tugas Belajar / diangkat kembali ke JF.";
+    if(hintSampaiT) hintSampaiT.textContent = "Tahun selesai Tugas Belajar / diangkat kembali ke JF.";
+    if(ctxEl){
+      ctxEl.textContent = "ℹ Pasal 22 Perka BKN No.3/2023 tidak mengatur batas 4 tahun atau Pangkat Puncak untuk Tugas Belajar — seluruh lama Tugas Belajar dihitung apa adanya.";
+      ctxEl.style.display = 'block'; ctxEl.className = 'period-preview ok';
+    }
+    return;
+  }
+
   const presets = {
     "Perpindahan": {
       title: "Masa Kerja Golongan (MKG)",
@@ -2289,6 +2321,21 @@ function updateLivePreview(){
     el.innerHTML = `ℹ Pengangkatan Kembali setelah Tugas Belajar — cukup isi "AK Kumulatif Terakhir" di atas. Centang "Ada penilaian kinerja tambahan?" bila memang ada konversi kinerja tugas JF yang perlu ditambahkan.`;
     el.style.display = 'block'; el.className = 'period-preview ok';
     renderPeriodSegments(null);
+    return;
+  }
+  if(val('f_jenis') === 'Pengangkatan Kembali' && val('f_sebab_pk') === 'tugas_belajar' && isChecked('f_ada_kinerja_tambahan')){
+    const tmtBulan=num(val('f_tmt_bulan')), tmtTahun=num(val('f_tmt_tahun')), sBulan=num(val('f_sampai_bulan')), sTahun=num(val('f_sampai_tahun'));
+    if(!tmtBulan||!tmtTahun||!sBulan||!sTahun){ el.innerHTML=''; el.style.display='none'; renderPeriodSegments(null); return; }
+    const ALraw = (sTahun-tmtTahun)*12 + (sBulan-tmtBulan+1);
+    if(ALraw < 0){
+      el.innerHTML = "⚠ Rentang tanggal tidak valid: Mulai Tugas Belajar berada setelah tanggal selesai.";
+      el.style.display='block'; el.className='period-preview warn';
+      renderPeriodSegments(null);
+      return;
+    }
+    el.innerHTML = `📅 Masa Tugas Belajar: <b>${monthName(tmtBulan)} ${tmtTahun} - ${monthName(sBulan)} ${sTahun}</b> — total <b>${ALraw} bulan</b> (dihitung apa adanya, tidak dibatasi 4 tahun/Pangkat Puncak). Pilih predikat kinerja untuk tiap periode di bawah.`;
+    el.style.display = 'block'; el.className = 'period-preview ok';
+    renderPeriodSegments({ AVmonth: tmtBulan, AYyear: tmtTahun, sBulan, sTahun, BF: ALraw, warn: [] });
     return;
   }
   const inp = {
