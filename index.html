@@ -276,8 +276,9 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
         <div class="field" id="fieldGolonganSebelumNaik" style="display:none">
           <label>Golongan Sebelum Kenaikan Pangkat</label>
           <select id="f_golongan_sebelum_naik"></select>
-          <div class="hint">Golongan yang dulu dipegang saat masih menjabat JF (sebelum diberhentikan) — dasar
-          untuk menghitung kebutuhan AK naik pangkat yang "dipenuhi".</div>
+          <div class="hint">Golongan yang dulu dipegang saat masih menjabat JF (sebelum diberhentikan). Sistem
+          otomatis menjumlahkan kebutuhan naik pangkat di SETIAP tahap yang dilewati sampai ke Golongan Saat
+          Ini — misalnya dari IV/a ke IV/c (melewati IV/b) dihitung 150+150=300, bukan cuma satu tahap.</div>
         </div>
       </div>
     </div>
@@ -689,14 +690,19 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
         <span class="k-eyebrow">⚠ Opsional — Belum Ada Dasar Hukum Resmi</span>
         <p>Berdasarkan koordinasi informal dengan BKN (Maret 2026), untuk kasus golongan naik SELAMA masih
         dalam jenjang yang sama, ada usulan tambahan <b>"AK Pemenuhan Dalam Pangkat"</b> = kebutuhan naik
-        pangkat dari golongan sebelum naik, dikurangi AK Kumulatif Terakhir (supaya tidak dobel hitung).
-        Contoh: JF Ahli Muda III/c (AK=50) → jadi Pengawas → naik pangkat ke III/d → diangkat kembali 1 tahun
-        kemudian dengan predikat Baik. AK = 50 (JF lama) + (100−50=50, Pemenuhan) + 25 (konversi 1 tahun) =
-        <b>125</b> — bukan 150 seperti pada Lampiran I resmi (karena kasus itu belum memperhitungkan AK
-        Pemenuhan). <b>BKN sendiri menyatakan praktik ini "belum ada penerapannya" secara resmi</b> dan
-        menyarankan mengajukan surat resmi untuk dasar hukumnya. Karena itu, opsi ini <b>TIDAK aktif secara
-        default</b> — centang kotak "Terapkan AK Pemenuhan Dalam Pangkat" hanya bila instansi Anda sudah
-        mengonfirmasi ke BKN secara tertulis bahwa praktik ini boleh diterapkan.</p>
+        pangkat pada SETIAP tahap yang dilewati dari golongan sebelum naik sampai golongan saat ini, dijumlahkan,
+        lalu dikurangi AK Kumulatif Terakhir (supaya tidak dobel hitung).</p>
+        <p><b>Contoh satu tahap:</b> JF Ahli Muda III/c (AK=50) → jadi Pengawas → naik pangkat ke III/d →
+        diangkat kembali 1 tahun kemudian dengan predikat Baik. AK = 50 (JF lama) + (100−50=50, Pemenuhan) +
+        25 (konversi 1 tahun) = <b>125</b>.</p>
+        <p><b>Contoh dua tahap (lompat pangkat):</b> JF Ahli Madya IV/a → naik pangkat ke IV/c (melewati IV/b)
+        selama menjabat administrasi. Kebutuhan bertahap = 150 (IV/a→IV/b) + 150 (IV/b→IV/c) = <b>300</b>,
+        baru dikurangi AK Kumulatif Terakhir untuk mendapatkan AK Pemenuhannya — bukan cuma satu tahap (150).</p>
+        <p>Kedua contoh ini berbeda dari Lampiran I resmi (yang belum memperhitungkan AK Pemenuhan sama sekali).
+        <b>BKN sendiri menyatakan praktik ini "belum ada penerapannya" secara resmi</b> dan menyarankan
+        mengajukan surat resmi untuk dasar hukumnya. Karena itu, opsi ini <b>TIDAK aktif secara default</b> —
+        centang kotak "Terapkan AK Pemenuhan Dalam Pangkat" hanya bila instansi Anda sudah mengonfirmasi ke
+        BKN secara tertulis bahwa praktik ini boleh diterapkan.</p>
       </div>
 
       <p>Berdasarkan Pasal 23 &amp; 24 Perka BKN No.3/2023, AK memakai <b>AK Kumulatif
@@ -1172,6 +1178,24 @@ function akDasarForCode(skemaKey, code, pangkatTable){
   return best;
 }
 
+/* Menjumlahkan Kebutuhan Naik Pangkat untuk SETIAP tahap kenaikan pangkat yang dilewati
+   dari golonganAwal sampai (tidak termasuk) golonganAkhir — dipakai untuk AK Pemenuhan Dalam
+   Pangkat pada Pengangkatan Kembali, supaya lompatan lebih dari satu tingkat pangkat (mis.
+   IV/a ke IV/c, melewati IV/b) dihitung penuh sebagai jumlah tiap tahap, bukan cuma satu tahap. */
+function sumKebutuhanPangkatBertahap(golonganAwal, golonganAkhir, pangkatTable){
+  const idxAwal = CFG.golonganList.indexOf(golonganAwal);
+  const idxAkhir = CFG.golonganList.indexOf(golonganAkhir);
+  if(idxAwal === -1 || idxAkhir === -1 || idxAkhir <= idxAwal) return null;
+  let total = 0;
+  for(let i = idxAwal; i < idxAkhir; i++){
+    const gol = CFG.golonganList[i];
+    const info = pangkatTable[gol];
+    if(!info || info.kebutuhanNaikPangkat == null) return null;
+    total += num(info.kebutuhanNaikPangkat);
+  }
+  return total;
+}
+
 function jenjangNameForCode(code){
   for(const [name, c] of Object.entries(CFG.jenjangCode)){
     if(c === code) return name;
@@ -1342,14 +1366,15 @@ function calcAK(inp){
         akDasar = num(inp.akKumulatifTerakhir) || 0;
         let notePemenuhanPangkat = "";
         if(inp.terapkanPemenuhanPangkat && inp.golonganSebelumNaik){
-          const pInfoAwal = pangkatTable[inp.golonganSebelumNaik];
-          const kebutuhanAwal = pInfoAwal ? pInfoAwal.kebutuhanNaikPangkat : null;
-          if(kebutuhanAwal != null){
-            const pemenuhanPangkat = Math.max(0, num(kebutuhanAwal) - akDasar);
+          const kebutuhanBertahap = sumKebutuhanPangkatBertahap(inp.golonganSebelumNaik, inp.golonganSaatIni, pangkatTable);
+          if(kebutuhanBertahap != null){
+            const pemenuhanPangkat = Math.max(0, kebutuhanBertahap - akDasar);
             akDasar = akDasar + pemenuhanPangkat;
-            notePemenuhanPangkat = ` + AK Pemenuhan Dalam Pangkat sebesar ${fmt(pemenuhanPangkat)} (kebutuhan naik pangkat dari golongan "${inp.golonganSebelumNaik}" sejumlah ${fmt(kebutuhanAwal)}, dikurangi AK Kumulatif Terakhir)`;
+            notePemenuhanPangkat = ` + AK Pemenuhan Dalam Pangkat sebesar ${fmt(pemenuhanPangkat)} (kebutuhan naik pangkat bertahap dari golongan "${inp.golonganSebelumNaik}" ke "${inp.golonganSaatIni}" sejumlah ${fmt(kebutuhanBertahap)}, dikurangi AK Kumulatif Terakhir)`;
+          } else if(inp.golonganSebelumNaik === inp.golonganSaatIni){
+            warn.push(`Golongan Sebelum Kenaikan Pangkat sama dengan Golongan Saat Ini — tidak ada tahap kenaikan pangkat yang dilewati, AK Pemenuhan Dalam Pangkat = 0.`);
           } else {
-            warn.push(`Kebutuhan Naik Pangkat untuk golongan "${inp.golonganSebelumNaik}" tidak ditemukan di tabel Kode Pangkat — AK Pemenuhan Dalam Pangkat tidak dapat dihitung.`);
+            warn.push(`Tidak dapat menghitung tahapan Kebutuhan Naik Pangkat dari golongan "${inp.golonganSebelumNaik}" ke "${inp.golonganSaatIni}" — periksa kembali kedua golongan tersebut (harus dalam jalur/urutan yang sama).`);
           }
         }
         notes.push(`Jenjang dituju sama dengan jenjang sebelum diberhentikan — ditambahkan AK Kumulatif Terakhir sebesar ${fmt(num(inp.akKumulatifTerakhir)||0)}${notePemenuhanPangkat} (Pasal 23 &amp; 24 Perka BKN No.3/2023${inp.terapkanPemenuhanPangkat && notePemenuhanPangkat ? ' + praktik AK Pemenuhan Dalam Pangkat' : ''}), bukan AK Dasar dari tabel golongan.`);
