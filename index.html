@@ -1775,7 +1775,13 @@ async function prosesDeskripsiOtomatis(){
     });
     const data = await response.json();
     if(!response.ok || data.error){
-      throw new Error(data.error || `Server merespons status ${response.status}`);
+      // Tampilkan detail mentah dari Gemini/Worker (kalau ada) supaya penyebab pastinya kelihatan,
+      // bukan cuma "status 400" yang tidak informatif.
+      let detail = data.error || '';
+      if(!detail && data.raw){
+        try{ detail = data.raw.error?.message || JSON.stringify(data.raw).slice(0, 300); }catch(e){}
+      }
+      throw new Error(detail || `Server merespons status ${response.status}`);
     }
     const teks = (data.text || '').trim();
     if(!teks){ throw new Error('AI tidak mengembalikan teks yang bisa dibaca.'); }
