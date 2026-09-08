@@ -1950,6 +1950,25 @@ function terapkanHasilAI(x){
   const setVal = (id, v) => { const el = document.getElementById(id); if(el && v !== null && v !== undefined && v !== '') el.value = v; };
   const setCheck = (id, v) => { const el = document.getElementById(id); if(el && v === true) el.checked = true; };
 
+  // PENTING: kosongkan dulu SEMUA field kondisional ke keadaan default sebelum mengisi dari AI —
+  // supaya field yang tidak terdeteksi AI (null) benar-benar KOSONG, bukan menyisakan nilai lama
+  // dari perhitungan sebelumnya yang bisa bikin panel kondisional salah tampil/sembunyi (tidak
+  // nyambung dengan Jenis Pengangkatan yang baru). Ini menyamai kondisi kalau form diisi dari kosong.
+  ['f_jenis','f_ijazah','f_jenjang','f_golongan','f_sebab_pk','f_jenjang_asal',
+   'f_golongan_sebelum_naik','f_asal_perpindahan','f_mode_penyetaraan'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  const golTerendahEl = document.getElementById('f_gol_terendah'); if(golTerendahEl) golTerendahEl.value = 'Tidak';
+  ['f_ak_kumulatif','f_ak_jf_sebelumnya','f_ak_inpassing_lama','f_tmt_bulan','f_tmt_tahun','f_sampai_bulan','f_sampai_tahun'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  ['f_ada_kinerja_tambahan','f_terapkan_pemenuhan_pangkat'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.checked = false;
+  });
+  setJabatanValue('');
+
+  // Sekarang isi HANYA yang berhasil dideteksi AI (atau dikoreksi manual di pop-up) — sisanya
+  // tetap kosong sesuai reset di atas.
   setVal('f_jenis', x.jenisPengangkatan);
   setVal('f_ijazah', x.ijazah);
   setVal('f_jenjang', x.jenjangDituju);
@@ -1962,9 +1981,6 @@ function terapkanHasilAI(x){
 
   if(x.jabatanSaatIni){ setJabatanValue(x.jabatanSaatIni); }
 
-  // Trigger konteks Jenis Pengangkatan dulu supaya field kondisional muncul
-  updateJenisContext();
-
   setVal('f_sebab_pk', x.sebabPK);
   setVal('f_jenjang_asal', x.jenjangAsal);
   setVal('f_ak_kumulatif', x.akKumulatifTerakhir);
@@ -1976,7 +1992,8 @@ function terapkanHasilAI(x){
   setVal('f_mode_penyetaraan', x.modePenyetaraan);
   setVal('f_ak_inpassing_lama', x.akInpassingLama);
 
-  // Trigger ulang supaya field yang baru terisi (sebabPK, asalPerpindahan, dst) ikut memicu tampilan yang benar
+  // Baru sekarang picu ulang seluruh logika tampil/sembunyi kondisional, dengan keadaan yang
+  // sudah bersih+terisi konsisten — persis seperti pengguna mengisi form ini secara manual dari awal.
   updateJenisContext();
   updateLivePreview();
 
