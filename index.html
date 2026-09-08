@@ -1829,7 +1829,18 @@ const PREDIKAT_LABEL_TO_KEY = {
   'baik':'baik', 'sangat baik':'sangatBaik'
 };
 function normalisasiPredikatLabel(s){
-  return PREDIKAT_LABEL_TO_KEY[String(s||'').trim().toLowerCase()] || null;
+  const t = String(s||'').trim().toLowerCase();
+  if(!t) return null;
+  // Cocokkan berdasarkan KATA KUNCI yang terkandung (bukan cocok persis) — supaya toleran kalau AI
+  // menambahkan kata lain di sekitarnya (mis. "Baik (seluruh periode)" atau "predikat baik"). Urutan
+  // penting: cek frasa yang lebih spesifik ("sangat baik") SEBELUM yang lebih pendek ("baik"), supaya
+  // "sangat baik" tidak salah kecocok jadi "baik" duluan.
+  if(t.includes('sangat baik')) return 'sangatBaik';
+  if(t.includes('sangat kurang')) return 'sangatKurang';
+  if(t.includes('butuh perbaikan')) return 'butuhPerbaikan';
+  if(t.includes('baik')) return 'baik';
+  if(t.includes('kurang')) return 'kurang';
+  return PREDIKAT_LABEL_TO_KEY[t] || null;
 }
 // Menerapkan spesifikasi PREDIKAT_KINERJA (satu kata seragam, atau "tahun:predikat;tahun:predikat")
 // ke segmen periode yang SUDAH terbentuk (periodSegments) — pembagian jumlah bulan tetap dihitung
@@ -1837,26 +1848,34 @@ function normalisasiPredikatLabel(s){
 function terapkanPredikatKinerjaKeSegmen(specString){
   if(!specString || !periodSegments.length) return;
   const spec = specString.trim();
-  let yearMap = null, uniformKey = null;
-  if(/\d{4}\s*:/.test(spec)){
-    yearMap = {};
-    spec.split(';').forEach(pair => {
-      const idx = pair.indexOf(':');
-      if(idx === -1) return;
-      const yearStr = pair.slice(0, idx).trim();
-      const predStr = pair.slice(idx + 1).trim();
-      const year = parseInt(yearStr, 10);
-      const key = normalisasiPredikatLabel(predStr);
+  const ada4Digit = /\d{4}/.test(spec);
+  if(ada4Digit){
+    // Format per-tahun — TOLERAN terhadap variasi pemisah (";" atau ","), dan tidak wajib format
+    // persis "tahun:predikat" — cukup ada satu angka 4 digit (tahun) dan satu kata kunci predikat
+    // di bagian teks yang sama.
+    const yearMap = {};
+    spec.split(/[;,]/).forEach(part => {
+      const yearMatch = part.match(/\d{4}/);
+      if(!yearMatch) return;
+      const year = parseInt(yearMatch[0], 10);
+      const sisaTeks = part.replace(yearMatch[0], '');
+      const key = normalisasiPredikatLabel(sisaTeks);
       if(!isNaN(year) && key) yearMap[year] = key;
     });
-  } else {
-    uniformKey = normalisasiPredikatLabel(spec);
+    if(Object.keys(yearMap).length){
+      periodSegments.forEach(seg => {
+        if(yearMap[seg.year] !== undefined) seg.predikat = yearMap[seg.year];
+      });
+      return;
+    }
+    // Kalau ada angka 4 digit tapi gagal dipasangkan ke predikat manapun, jangan langsung menyerah —
+    // coba juga anggap ini format seragam (barangkali angka 4 digit itu bukan tahun predikat, tapi
+    // kebetulan ada di teks lain seperti NIP terpotong).
   }
-  if(!yearMap && !uniformKey) return;
-  periodSegments.forEach(seg => {
-    if(yearMap && yearMap[seg.year] !== undefined) seg.predikat = yearMap[seg.year];
-    else if(uniformKey) seg.predikat = uniformKey;
-  });
+  const uniformKey = normalisasiPredikatLabel(spec);
+  if(uniformKey){
+    periodSegments.forEach(seg => { seg.predikat = uniformKey; });
+  }
 }
 
 function parseTeksTerstruktur(teks){
