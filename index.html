@@ -1845,8 +1845,8 @@ function normalisasiPredikatLabel(s){
 // Menerapkan spesifikasi PREDIKAT_KINERJA (satu kata seragam, atau "tahun:predikat;tahun:predikat")
 // ke segmen periode yang SUDAH terbentuk (periodSegments) — pembagian jumlah bulan tetap dihitung
 // oleh kode ini sendiri (bukan oleh AI), supaya tidak rawan salah hitung.
-function terapkanPredikatKinerjaKeSegmen(specString){
-  if(!specString || !periodSegments.length) return;
+function hitungPredikatUntukSegmen(segArray, specString){
+  if(!specString || !segArray.length) return;
   const spec = specString.trim();
   const ada4Digit = /\d{4}/.test(spec);
   if(ada4Digit){
@@ -1863,7 +1863,7 @@ function terapkanPredikatKinerjaKeSegmen(specString){
       if(!isNaN(year) && key) yearMap[year] = key;
     });
     if(Object.keys(yearMap).length){
-      periodSegments.forEach(seg => {
+      segArray.forEach(seg => {
         if(yearMap[seg.year] !== undefined) seg.predikat = yearMap[seg.year];
       });
       return;
@@ -1874,7 +1874,7 @@ function terapkanPredikatKinerjaKeSegmen(specString){
   }
   const uniformKey = normalisasiPredikatLabel(spec);
   if(uniformKey){
-    periodSegments.forEach(seg => { seg.predikat = uniformKey; });
+    segArray.forEach(seg => { seg.predikat = uniformKey; });
   }
 }
 
@@ -1939,11 +1939,29 @@ const AI_FIELD_TYPE = {
 };
 const AI_BOOLEAN_TO_YATIDAK = ['adaKinerjaTambahan','terapkanPemenuhanPangkat'];
 
+function bangunSegmenPratinjauAI(extracted){
+  const inp = {
+    jenisPengangkatan: extracted.jenisPengangkatan || '',
+    ijazah: extracted.ijazah || '',
+    golonganSaatIni: extracted.golonganSaatIni || '',
+    tmtBulan: extracted.tmtBulan, tmtTahun: extracted.tmtTahun,
+    sampaiBulan: extracted.sampaiBulan, sampaiTahun: extracted.sampaiTahun,
+  };
+  if(!inp.jenisPengangkatan || !inp.golonganSaatIni || !inp.tmtBulan || !inp.tmtTahun || !inp.sampaiBulan || !inp.sampaiTahun) return [];
+  try{
+    const periode = computeRecognizedPeriod(inp);
+    if(periode.warn && periode.warn.length) return [];
+    const segs = generatePeriodSegments(periode.AVmonth, periode.AYyear, periode.sBulan, periode.sTahun);
+    if(extracted.predikatKinerja) hitungPredikatUntukSegmen(segs, extracted.predikatKinerja);
+    return segs;
+  }catch(e){ return []; }
+}
+
 function tampilkanKonfirmasiAI(extracted, rawTeks){
   window._pendingAIExtraction = extracted;
   const modal = document.getElementById('aiConfirmModal');
   const body = document.getElementById('aiConfirmBody');
-  const rows = Object.keys(AI_FIELD_LABEL).map(k => {
+  const rows = Object.keys(AI_FIELD_LABEL).filter(k => k !== 'predikatKinerja').map(k => {
     const def = AI_FIELD_TYPE[k] || { type:'text' };
     let rawVal = extracted[k];
     if(AI_BOOLEAN_TO_YATIDAK.includes(k)) rawVal = rawVal === true ? 'Ya' : rawVal === false ? 'Tidak' : '';
@@ -1962,12 +1980,36 @@ function tampilkanKonfirmasiAI(extracted, rawTeks){
     }
     return `<div class="ai-field ai-field-edit"><span>${escapeHtml(AI_FIELD_LABEL[k])}</span>${inputHtml}</div>`;
   }).join('');
+
+  // Predikat Kinerja ditampilkan PECAH PER PERIODE (persis seperti tabel di form utama), bukan satu
+  // kotak teks gabungan — supaya bisa diperiksa & diedit per periode langsung di pop-up ini.
+  const previewSegments = bangunSegmenPratinjauAI(extracted);
+  window._pendingAIPeriodSegments = previewSegments;
+  let predikatBlock;
+  if(previewSegments.length){
+    predikatBlock = `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">
+      <div class="small-muted" style="margin-bottom:4px">Predikat Kinerja per Periode (tebakan AI — periksa &amp; ganti kalau perlu)</div>
+      ${previewSegments.map((seg,i) => `
+        <div class="ai-field ai-field-edit">
+          <span>${escapeHtml(seg.label)} (${seg.months} bln)</span>
+          <select id="aiPredikatSeg_${i}">
+            ${PREDIKAT_OPTIONS.map(o=>`<option value="${o.value}" ${seg.predikat===o.value?'selected':''}>${escapeHtml(o.label)}</option>`).join('')}
+          </select>
+        </div>`).join('')}
+    </div>`;
+  } else {
+    // TMT/Sampai belum lengkap (jadi periode belum bisa dibentuk) — tampilkan kotak teks biasa sebagai cadangan.
+    const dispVal = extracted.predikatKinerja || '';
+    predikatBlock = `<div class="ai-field ai-field-edit"><span>${escapeHtml(AI_FIELD_LABEL.predikatKinerja)}</span><input type="text" id="aiEdit_predikatKinerja" value="${escapeAttr(dispVal)}"></div>`;
+  }
+
   const rawBlock = rawTeks ? `<details style="margin-top:10px">
       <summary style="cursor:pointer;font-size:11.5px;color:var(--muted)">Lihat teks mentah dari AI (untuk diagnosis kalau ada yang salah baca)</summary>
       <pre style="white-space:pre-wrap;font-size:10.5px;background:#f4f6f8;padding:8px;border-radius:6px;margin-top:6px;max-height:160px;overflow:auto">${escapeHtml(rawTeks)}</pre>
     </details>` : '';
   body.innerHTML = `<div class="small-muted" style="margin-bottom:8px">Periksa &amp; edit langsung kalau ada yang kurang pas, baru klik "Ya, Isi ke Form".</div>
     ${rows}
+    ${predikatBlock}
     ${extracted.catatanKetidakpastian ? `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line);color:#a6772c">⚠ Catatan dari AI: ${escapeHtml(extracted.catatanKetidakpastian)}</div>` : ''}
     ${rawBlock}`;
   modal.style.display = 'flex';
@@ -1976,6 +2018,7 @@ function konfirmasiAITerapkan(){
   if(window._pendingAIExtraction){
     const corrected = {};
     Object.keys(AI_FIELD_LABEL).forEach(k => {
+      if(k === 'predikatKinerja') return; // ditangani terpisah di bawah (per-periode, bukan satu field)
       const el = document.getElementById(`aiEdit_${k}`);
       if(!el) return;
       let v = el.value.trim();
@@ -1988,7 +2031,22 @@ function konfirmasiAITerapkan(){
         corrected[k] = v;
       }
     });
-    terapkanHasilAI(corrected);
+
+    // Ambil hasil edit predikat per periode dari pop-up (kalau tabelnya ditampilkan), atau fallback
+    // ke kotak teks biasa (kalau periode belum bisa dibentuk saat pop-up muncul).
+    let segmenTerpilih = null;
+    const pending = window._pendingAIPeriodSegments;
+    if(pending && pending.length){
+      segmenTerpilih = pending.map((seg, i) => {
+        const sel = document.getElementById(`aiPredikatSeg_${i}`);
+        return { ...seg, predikat: sel ? sel.value : seg.predikat };
+      });
+    } else {
+      const fallbackEl = document.getElementById('aiEdit_predikatKinerja');
+      if(fallbackEl && fallbackEl.value.trim()) corrected.predikatKinerja = fallbackEl.value.trim();
+    }
+
+    terapkanHasilAI(corrected, segmenTerpilih);
   }
   document.getElementById('aiConfirmModal').style.display = 'none';
   toast('Form telah diisi — periksa & sesuaikan sebelum menekan Hitung Angka Kredit.');
@@ -1997,7 +2055,7 @@ function konfirmasiAIBatal(){
   document.getElementById('aiConfirmModal').style.display = 'none';
 }
 
-function terapkanHasilAI(x){
+function terapkanHasilAI(x, prebuiltSegments){
   const setVal = (id, v) => { const el = document.getElementById(id); if(el && v !== null && v !== undefined && v !== '') el.value = v; };
   const setCheck = (id, v) => { const el = document.getElementById(id); if(el && v === true) el.checked = true; };
 
@@ -2051,10 +2109,15 @@ function terapkanHasilAI(x){
   updateJenisContext();
   updateLivePreview();
 
-  // Terapkan PREDIKAT_KINERJA dari AI ke segmen periode yang baru terbentuk — jumlah bulan tetap
-  // DIHITUNG OLEH KODE INI SENDIRI (bukan oleh AI), supaya tidak rawan salah hitung/salah jumlah.
-  if(x.predikatKinerja){
-    terapkanPredikatKinerjaKeSegmen(x.predikatKinerja);
+  // Kalau pop-up konfirmasi sudah menyediakan segmen yang sudah pasti benar per periode (hasil edit
+  // pengguna di tabel), PAKAI ITU LANGSUNG — ini yang paling akurat, karena predikatnya sudah dipilih
+  // per periode secara eksplisit, tidak perlu ditebak ulang dari teks. Kalau tidak ada (mis. TMT/Sampai
+  // belum lengkap saat pop-up muncul), baru coba tebak dari teks PREDIKAT_KINERJA seperti biasa.
+  if(prebuiltSegments && prebuiltSegments.length){
+    periodSegments = prebuiltSegments;
+    recomputePredikatTotalsFromSegments();
+  } else if(x.predikatKinerja){
+    hitungPredikatUntukSegmen(periodSegments, x.predikatKinerja);
     recomputePredikatTotalsFromSegments();
   }
   try{
