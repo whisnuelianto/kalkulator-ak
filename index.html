@@ -9,6 +9,7 @@
 <style>
 
 
+
 :root{
   --navy:#0f2a43; --navy2:#163a5c; --accent:#c8963e; --accent2:#a6772c;
   --bg:#f4f6f8; --card:#ffffff; --line:#e2e6ea; --text:#1b2530; --muted:#5b6774;
@@ -145,10 +146,34 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 .modal-box button.btn{ width:100%; padding:12px; font-size:14px; }
 .modal-box button.btn:disabled{ opacity:.45; cursor:not-allowed; }
 
+.ai-card{
+  background:linear-gradient(135deg,#fbf8f2,#f5f0e4);
+  border:1px solid #e8dcc0;
+}
+.ai-card textarea{
+  width:100%; padding:10px 12px; border:1px solid #c9d2da; border-radius:8px; font-size:13.5px;
+  font-family:inherit; resize:vertical;
+}
+.ai-summary{
+  background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 14px; font-size:12.5px;
+}
+.ai-summary .ai-field{ display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #f0f0f0; }
+.ai-summary .ai-field b{ color:var(--navy2); }
+.ai-summary .ai-field-edit{ align-items:center; gap:8px; }
+.ai-summary .ai-field-edit span{ flex:none; width:150px; font-size:11.5px; color:var(--muted); }
+.ai-summary .ai-field-edit input, .ai-summary .ai-field-edit select{
+  flex:1; min-width:0; padding:5px 7px; border:1px solid #c9d2da; border-radius:6px; font-size:12.5px;
+}
+.ai-loading{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+.ai-step{ font-size:12.5px; color:var(--navy2); font-weight:600; margin-bottom:6px; }
+.ai-card textarea#ai_hasil_terstruktur{ font-family:"Courier New",monospace; font-size:12px; }
+
+
 
 </style>
 </head>
 <body>
+
 
 <header class="topbar">
   <div class="logo">AK</div>
@@ -169,6 +194,18 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 
   <!-- ============ KALKULATOR ============ -->
   <section id="viewKalkulator" class="view active">
+    <div class="card ai-card">
+      <h2>🤖 Isi Otomatis dari Deskripsi</h2>
+      <div class="sub">Ceritakan skenarionya dengan kalimat bebas (typo/tulisan berantakan tidak masalah) —
+      AI akan membaca &amp; mengisi form di bawah secara otomatis. Akan muncul pop-up ringkasan untuk
+      dikonfirmasi dulu sebelum form benar-benar terisi.</div>
+      <textarea id="ai_deskripsi" rows="4" placeholder="Contoh: pak budi pelaksana golongan 4a ijazah s1 mau perpindahan ke ahli pertama tmt golongan januari 2020 sampe desember 2021 predikat kinerjanya baik semua"></textarea>
+      <div class="actions" style="margin-top:10px">
+        <button class="btn gold" id="ai_proses_btn" onclick="prosesDeskripsiOtomatis()">✨ Proses dengan AI</button>
+      </div>
+      <div id="ai_status_wrap" style="display:none;margin-top:10px"></div>
+    </div>
+
     <div class="card">
       <h2>Data Pengusul</h2>
       <div class="sub">Isi data sesuai usulan Penetapan Angka Kredit (PAK).</div>
@@ -538,6 +575,21 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
     <div class="card">
       <h2>📖 Panduan Mengisi Kalkulator</h2>
       <div class="sub">Langkah demi langkah untuk pengguna biasa (tab Kalkulator).</div>
+      <div class="warn-box" style="margin-bottom:14px">
+        <span class="k-eyebrow">🤖 Cara Tercepat: Isi Otomatis dari Deskripsi</span>
+        <p>Di paling atas tab Kalkulator ada kotak "Isi Otomatis dari Deskripsi" —
+        tulis ceritanya dengan bahasa sehari-hari (typo/tulisan berantakan tidak masalah), lalu:</p>
+        <ol style="padding-left:20px;margin:6px 0">
+          <li>Klik <b>"✨ Proses dengan AI"</b>.</li>
+          <li>Tunggu beberapa detik — AI membaca deskripsi Anda di balik layar.</li>
+          <li>Muncul pop-up ringkasan yang <b>bisa langsung diedit</b> — perbaiki dulu kalau ada yang kurang
+          pas, baru klik "Ya, Isi ke Form".</li>
+        </ol>
+        <p>Prosesnya sepenuhnya otomatis (tidak perlu pindah aplikasi atau salin-tempel manual) — pemrosesan
+        AI-nya berjalan lewat server perantara milik admin, bukan API key yang tertanam di kode ini. <b>Tetap
+        wajib periksa satu per satu</b> sebelum menekan "Hitung Angka Kredit" — AI bisa salah paham, terutama
+        untuk skenario yang rumit (Pengangkatan Kembali, Penyetaraan, dsb).</p>
+      </div>
       <ol style="padding-left:20px;line-height:1.9">
         <li><b>Nama</b> — nama pegawai yang dihitung Angka Kreditnya.</li>
         <li><b>Jenis Pengangkatan</b> — pilih salah satu:
@@ -842,8 +894,24 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
   </div>
 </div>
 
+<div id="aiConfirmModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-icon">🤖</div>
+    <h2>Konfirmasi Sebelum Mengisi Form</h2>
+    <p>Berikut data yang berhasil dibaca dari teks yang Anda tempel. <b>Periksa satu per satu</b> — kalau ada
+    yang keliru, klik Batal, perbaiki deskripsinya, lalu ulangi dari Langkah 1.</p>
+    <div id="aiConfirmBody" class="ai-summary" style="max-height:260px;overflow:auto"></div>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn secondary" style="flex:1" onclick="konfirmasiAIBatal()">❌ Batal</button>
+      <button class="btn gold" style="flex:1" onclick="konfirmasiAITerapkan()">✅ Ya, Isi ke Form</button>
+    </div>
+  </div>
+</div>
+
+
 
 <script>
+
 
 /* ============================================================
    KALKULATOR ANGKA KREDIT JABATAN FUNGSIONAL - WEB APP
@@ -1279,12 +1347,14 @@ function calcAK(inp){
   const normaAK = CFG.normaAkTahunan[inp.jenjangDituju];
 
   let AB=null, AC=null, AD=null, AK_=null, ASK_=null, akDasar=null, totalAK=null, statusHitung="OK";
+  let breakdownExtra = []; // rincian komponen non-konversi yang transparan (menggantikan baris "AK Dasar" generik bila diisi)
   let roadmap = [];
 
   if(isAntarJF){
     // Pasal 5(2) & 6 Perka BKN No.3/2023: perpindahan DALAM KELOMPOK Jabatan Fungsional pada JENJANG
     // YANG SAMA membawa langsung AK sebelumnya, tanpa dikonversi/dihitung ulang.
     totalAK = num(inp.akJfSebelumnya) || 0;
+    breakdownExtra.push({label:"AK dari Jabatan Fungsional Sebelumnya", value: totalAK});
     notes.push(`Perpindahan antar Jabatan Fungsional pada jenjang yang sama — AK dibawa langsung dari
       Jabatan Fungsional sebelumnya sebesar ${fmt(totalAK)}, sesuai Pasal 6 Perka BKN No.3/2023 (tidak
       dihitung ulang dari masa kerja/predikat kinerja).`.replace(/\s+/g,' '));
@@ -1303,8 +1373,11 @@ function calcAK(inp){
         warn.push(`Golongan "${inp.golonganSaatIni}" tidak terdaftar pada Skema AK Dasar "${CFG.skemaAkDasar[skemaKey]?.label || skemaKey}".`);
         akDasar = 0;
       }
-      totalAK = (num(inp.akInpassingLama) || 0) + akDasar;
-      notes.push(`Koreksi Inpassing Lama — AK inpassing sebelumnya (${fmt(num(inp.akInpassingLama)||0)}) ditambah AK Dasar sesuai golongan saat diangkat ke JF (${fmt(akDasar)}), sesuai SE BKN No.9/2024 bagian 5.c.1.`);
+      const akInpassingLamaVal = num(inp.akInpassingLama) || 0;
+      totalAK = akInpassingLamaVal + akDasar;
+      breakdownExtra.push({label:"AK Inpassing Lama", value: akInpassingLamaVal});
+      breakdownExtra.push({label:"AK Dasar (golongan saat diangkat ke JF)", value: akDasar});
+      notes.push(`Koreksi Inpassing Lama — AK inpassing sebelumnya (${fmt(akInpassingLamaVal)}) ditambah AK Dasar sesuai golongan saat diangkat ke JF (${fmt(akDasar)}), sesuai SE BKN No.9/2024 bagian 5.c.1.`);
       warn.push(`Pastikan pejabat fungsional ini BELUM PERNAH mengalami kenaikan jenjang jabatan sejak diangkat lewat inpassing tersebut — bila sudah pernah naik jenjang, ketentuan ini TIDAK berlaku.`);
     }
   } else if(BJ==null || BL==null){
@@ -1323,6 +1396,7 @@ function calcAK(inp){
       const jumlahBulanCocokTubel = sumSTU === AL;
       if(!inp.adaKinerjaTambahan){
         totalAK = akKumulatif;
+        breakdownExtra.push({label:"AK Kumulatif Terakhir (Tugas Belajar)", value: akKumulatif});
         notes.push(`Pengangkatan Kembali setelah Tugas Belajar (Pasal 22 Perka BKN No.3/2023) — AK = AK Kumulatif Terakhir sebesar ${fmt(akKumulatif)}, tanpa tambahan konversi kinerja (tidak ada penilaian kinerja tugas JF selama tugas belajar).`);
       } else if(!jumlahBulanCocokTubel){
         statusHitung = "TIDAK_COCOK";
@@ -1337,6 +1411,7 @@ function calcAK(inp){
         AK_ = (K/12*num(CFG.predikatEkstra.kurang.koefisien)) * normaAK;
         ASK_ = (SK/12*num(CFG.predikatEkstra.sangatKurang.koefisien)) * normaAK;
         totalAK = akKumulatif + AB + AC + AD + AK_ + ASK_;
+        breakdownExtra.push({label:"AK Kumulatif Terakhir (Tugas Belajar)", value: akKumulatif});
         notes.push(`Pengangkatan Kembali setelah Tugas Belajar (Pasal 22 Perka BKN No.3/2023) — AK = AK Kumulatif Terakhir (${fmt(akKumulatif)}) + konversi penilaian kinerja tugas JF selama tugas belajar.`);
       }
     } else {
@@ -1363,13 +1438,16 @@ function calcAK(inp){
       const samaJenjang = jenjangAsal === inp.jenjangDituju;
 
       if(samaJenjang){
-        akDasar = num(inp.akKumulatifTerakhir) || 0;
+        const akKumulatifVal = num(inp.akKumulatifTerakhir) || 0;
+        akDasar = akKumulatifVal;
         let notePemenuhanPangkat = "";
+        breakdownExtra.push({label:"AK Kumulatif Terakhir (sebelum diberhentikan)", value: akKumulatifVal});
         if(inp.terapkanPemenuhanPangkat && inp.golonganSebelumNaik){
           const kebutuhanBertahap = sumKebutuhanPangkatBertahap(inp.golonganSebelumNaik, inp.golonganSaatIni, pangkatTable);
           if(kebutuhanBertahap != null){
             const pemenuhanPangkat = Math.max(0, kebutuhanBertahap - akDasar);
             akDasar = akDasar + pemenuhanPangkat;
+            breakdownExtra.push({label:"AK Pemenuhan Dalam Pangkat (⚠ belum resmi)", value: pemenuhanPangkat});
             notePemenuhanPangkat = ` + AK Pemenuhan Dalam Pangkat sebesar ${fmt(pemenuhanPangkat)} (kebutuhan naik pangkat bertahap dari golongan "${inp.golonganSebelumNaik}" ke "${inp.golonganSaatIni}" sejumlah ${fmt(kebutuhanBertahap)}, dikurangi AK Kumulatif Terakhir)`;
           } else if(inp.golonganSebelumNaik === inp.golonganSaatIni){
             warn.push(`Golongan Sebelum Kenaikan Pangkat sama dengan Golongan Saat Ini — tidak ada tahap kenaikan pangkat yang dilewati, AK Pemenuhan Dalam Pangkat = 0.`);
@@ -1377,7 +1455,7 @@ function calcAK(inp){
             warn.push(`Tidak dapat menghitung tahapan Kebutuhan Naik Pangkat dari golongan "${inp.golonganSebelumNaik}" ke "${inp.golonganSaatIni}" — periksa kembali kedua golongan tersebut (harus dalam jalur/urutan yang sama).`);
           }
         }
-        notes.push(`Jenjang dituju sama dengan jenjang sebelum diberhentikan — ditambahkan AK Kumulatif Terakhir sebesar ${fmt(num(inp.akKumulatifTerakhir)||0)}${notePemenuhanPangkat} (Pasal 23 &amp; 24 Perka BKN No.3/2023${inp.terapkanPemenuhanPangkat && notePemenuhanPangkat ? ' + praktik AK Pemenuhan Dalam Pangkat' : ''}), bukan AK Dasar dari tabel golongan.`);
+        notes.push(`Jenjang dituju sama dengan jenjang sebelum diberhentikan — ditambahkan AK Kumulatif Terakhir sebesar ${fmt(akKumulatifVal)}${notePemenuhanPangkat} (Pasal 23 &amp; 24 Perka BKN No.3/2023${inp.terapkanPemenuhanPangkat && notePemenuhanPangkat ? ' + praktik AK Pemenuhan Dalam Pangkat' : ''}), bukan AK Dasar dari tabel golongan. Lihat rincian komponen di tabel di atas — AK Kumulatif Terakhir SUDAH termasuk dalam total, ditampilkan sebagai baris terpisah.`);
         if(inp.terapkanPemenuhanPangkat && notePemenuhanPangkat){
           warn.push(`⚠ AK Pemenuhan Dalam Pangkat yang diterapkan di sini BELUM memiliki dasar hukum resmi — berdasarkan koordinasi informal dengan BKN (Maret 2026). BKN menyatakan praktik ini belum ada penerapan resminya dan menyarankan mengajukan surat resmi untuk memperoleh dasar hukum. Jangan jadikan satu-satunya dasar untuk keputusan resmi tanpa konfirmasi tertulis dari BKN.`);
         }
@@ -1504,6 +1582,8 @@ function calcAK(inp){
     const akDasarNext = akDasarFromSkema(skemaKey, inp.golonganSaatIni) ?? 0;
     if(p){
       totalAK = num(p.ak) + akDasarNext;
+      breakdownExtra.push({label:"AK Penyetaraan (tabel Golongan/Pendidikan/Masa Kerja)", value: num(p.ak)});
+      breakdownExtra.push({label:"AK Dasar", value: akDasarNext});
       notes.push(`AK Penyetaraan (${p.ak}) dari tabel Golongan/Pendidikan/Masa Kerja "${BZ}", ditambah AK Dasar (${akDasarNext}).`);
     } else {
       statusHitung = "PERLU_ATURAN_KUSTOM";
@@ -1517,7 +1597,8 @@ function calcAK(inp){
     const pemenuhanJenjang = CFG.kebutuhanKumulatifJenjang[inp.jenjangDituju];
     if(p && pemenuhanJenjang != null){
       totalAK = num(pemenuhanJenjang);
-      notes.push(`Golongan lebih tinggi dari jenjang dituju (J<P). AK dari tabel Penyetaraan sebesar ${fmt(p.ak)} diberikan penuh sebagai pemenuhan kebutuhan jenjang "${inp.jenjangDituju}" (${fmt(pemenuhanJenjang)}). Bisa langsung diusulkan naik jenjang paling singkat 1 tahun kemudian (jika tersedia kebutuhan & lulus Uji Kompetensi). AK Penyetaraan asli (${fmt(p.ak)}) tetap dicatat untuk kenaikan pangkat berikutnya setelah jenjang sesuai golongan (SE BKN No.9/2024 bagian 5.c.2.a).`);
+      breakdownExtra.push({label:"AK Pemenuhan Kebutuhan Jenjang", value: totalAK});
+      notes.push(`Golongan lebih tinggi dari jenjang dituju (J<P). AK dari tabel Penyetaraan sebesar ${fmt(p.ak)} diberikan penuh sebagai pemenuhan kebutuhan jenjang "${inp.jenjangDituju}" (${fmt(pemenuhanJenjang)}). Bisa langsung diusulkan naik jenjang paling singkat 1 tahun kemudian (jika tersedia kebutuhan & lulus Uji Kompetensi). AK Penyetaraan asli (${fmt(p.ak)}) tetap dicatat untuk kenaikan pangkat berikutnya setelah jenjang sesuai golongan (SE BKN No.9/2024 bagian 5.c.2.a) — TIDAK termasuk dalam Total AK di atas, tersimpan sebagai catatan untuk kenaikan pangkat berikutnya.`);
     } else {
       statusHitung = "PERLU_ATURAN_KUSTOM";
       if(!p) warn.push(`Kombinasi "${BZkey}" belum terdaftar di Tabel Penyetaraan.`);
@@ -1531,7 +1612,8 @@ function calcAK(inp){
     const kebutuhanPangkat = pInfo ? pInfo.kebutuhanNaikPangkat : null;
     if(p && kebutuhanPangkat != null){
       totalAK = num(kebutuhanPangkat);
-      notes.push(`Golongan lebih rendah dari jenjang dituju (J>P). AK Penyetaraan (${fmt(p.ak)}) + konversi predikat kinerja + pemenuhan selisih, digabung jadi AK penuh sebesar kebutuhan kenaikan pangkat golongan "${inp.golonganSaatIni}" (${fmt(kebutuhanPangkat)}). Berlaku setelah menduduki pangkat & jabatan paling singkat 1 tahun (SE BKN No.9/2024 bagian 5.c.2.b).`);
+      breakdownExtra.push({label:"AK Penuh (Kebutuhan Kenaikan Pangkat)", value: totalAK});
+      notes.push(`Golongan lebih rendah dari jenjang dituju (J>P). AK Penyetaraan (${fmt(p.ak)}) + konversi predikat kinerja + pemenuhan selisih, digabung jadi AK penuh sebesar kebutuhan kenaikan pangkat golongan "${inp.golonganSaatIni}" (${fmt(kebutuhanPangkat)}) — ditampilkan sebagai satu angka gabungan di atas, karena rinciannya (konversi kinerja aktual vs selisih penambal) tidak ditentukan secara eksak oleh regulasi. Berlaku setelah menduduki pangkat &amp; jabatan paling singkat 1 tahun (SE BKN No.9/2024 bagian 5.c.2.b).`);
     } else {
       statusHitung = "PERLU_ATURAN_KUSTOM";
       if(!p) warn.push(`Kombinasi "${BZkey}" belum terdaftar di Tabel Penyetaraan.`);
@@ -1582,7 +1664,8 @@ function calcAK(inp){
     appliedRules: applied,
     sumSTU: (isAntarJF||isKoreksiInpassing) ? 0 : sumSTU,
     jumlahBulanCocok: (isAntarJF||isKoreksiInpassing) ? true : (isTubel ? (sumSTU===AL) : jumlahBulanCocok),
-    BF: (isAntarJF||isKoreksiInpassing) ? 0 : (isTubel ? AL : BF), roadmap
+    BF: (isAntarJF||isKoreksiInpassing) ? 0 : (isTubel ? AL : BF), roadmap,
+    breakdownExtra
   };
 }
 
@@ -1617,7 +1700,13 @@ function renderResult(res, containerId){
   if(res.AD!=null) html += `<tr><td>AK Konversi — Sangat Baik</td><td class="num">${fmt(res.AD)}</td></tr>`;
   if(res.AK_) html += `<tr><td>AK Konversi — Kurang (asumsi)</td><td class="num">${fmt(res.AK_)}</td></tr>`;
   if(res.ASK_) html += `<tr><td>AK Konversi — Sangat Kurang (asumsi)</td><td class="num">${fmt(res.ASK_)}</td></tr>`;
-  if(res.akDasar!=null) html += `<tr><td>AK Dasar / Pemenuhan Golongan</td><td class="num">${fmt(res.akDasar)}</td></tr>`;
+  if(res.breakdownExtra && res.breakdownExtra.length){
+    res.breakdownExtra.forEach(item => {
+      html += `<tr><td>${escapeHtml(item.label)}</td><td class="num">${fmt(item.value)}</td></tr>`;
+    });
+  } else if(res.akDasar!=null) {
+    html += `<tr><td>AK Dasar / Pemenuhan Golongan</td><td class="num">${fmt(res.akDasar)}</td></tr>`;
+  }
   html += `</table>`;
 
   html += `<div class="divider"></div>`;
@@ -1658,6 +1747,234 @@ function escapeHtml(s){
 }
 
 /* ---------------- FORM HANDLING ---------------- */
+/* ---------------- ISI OTOMATIS DARI DESKRIPSI (via Cloudflare Worker) ----------------
+   Kalkulator memanggil Worker Cloudflare milik admin (bukan langsung ke penyedia AI).
+   API key AI tersimpan aman di Worker tersebut (server-side), TIDAK PERNAH ada di kode
+   ini maupun terkirim ke browser pengguna. "Ekosistem" pemahaman Angka Kredit (aturan,
+   format field, dsb) juga tertanam di dalam kode Worker, bukan dikirim dari sini. */
+
+// URL Worker Cloudflare yang menjadi perantara aman ke API AI — API key TIDAK PERNAH
+// tersimpan di kode ini, hanya di server Worker tersebut.
+const AI_WORKER_URL = "https://kalkulator-ak-proxy.whisnudataanalis.workers.dev";
+
+async function prosesDeskripsiOtomatis(){
+  const deskripsi = (document.getElementById('ai_deskripsi').value || '').trim();
+  const statusWrap = document.getElementById('ai_status_wrap');
+  const btn = document.getElementById('ai_proses_btn');
+  if(!deskripsi){ toast('Tulis dulu deskripsi skenarionya.'); return; }
+
+  statusWrap.style.display = 'block';
+  statusWrap.innerHTML = `<div class="ai-loading">⏳ Memproses dengan AI...</div>`;
+  btn.disabled = true;
+
+  try{
+    const response = await fetch(AI_WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: deskripsi })
+    });
+    const data = await response.json();
+    if(!response.ok || data.error){
+      throw new Error(data.error || `Server merespons status ${response.status}`);
+    }
+    const teks = (data.text || '').trim();
+    if(!teks){ throw new Error('AI tidak mengembalikan teks yang bisa dibaca.'); }
+
+    const extracted = parseTeksTerstruktur(teks);
+    const adaField = Object.keys(AI_FIELD_MAPPING).some(k => extracted[AI_FIELD_MAPPING[k]] !== undefined && extracted[AI_FIELD_MAPPING[k]] !== null);
+    if(!adaField){
+      throw new Error('Format balasan AI tidak dikenali. Coba tulis ulang deskripsinya lebih jelas.');
+    }
+    statusWrap.style.display = 'none';
+    tampilkanKonfirmasiAI(extracted);
+  }catch(err){
+    statusWrap.innerHTML = `<div class="ai-summary" style="color:#8a3a2b">⚠ Gagal memproses: ${escapeHtml(err.message)}. Coba lagi, atau isi form secara manual di bawah.</div>`;
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+const AI_FIELD_MAPPING = {
+  JENIS_PENGANGKATAN:'jenisPengangkatan', IJAZAH:'ijazah', JABATAN_SAAT_INI:'jabatanSaatIni',
+  JENJANG_DITUJU:'jenjangDituju', GOLONGAN_SAAT_INI:'golonganSaatIni', GOLONGAN_TERENDAH:'golonganTerendah',
+  TMT_BULAN:'tmtBulan', TMT_TAHUN:'tmtTahun', SAMPAI_BULAN:'sampaiBulan', SAMPAI_TAHUN:'sampaiTahun',
+  BULAN_BUTUH_PERBAIKAN:'bulanButuhPerbaikan', BULAN_BAIK:'bulanBaik', BULAN_SANGAT_BAIK:'bulanSangatBaik',
+  BULAN_KURANG:'bulanKurang', BULAN_SANGAT_KURANG:'bulanSangatKurang',
+  SEBAB_PK:'sebabPK', JENJANG_ASAL:'jenjangAsal', AK_KUMULATIF_TERAKHIR:'akKumulatifTerakhir',
+  ADA_KINERJA_TAMBAHAN:'adaKinerjaTambahan', TERAPKAN_PEMENUHAN_PANGKAT:'terapkanPemenuhanPangkat',
+  GOLONGAN_SEBELUM_NAIK:'golonganSebelumNaik', ASAL_PERPINDAHAN:'asalPerpindahan',
+  AK_JF_SEBELUMNYA:'akJfSebelumnya', MODE_PENYETARAAN:'modePenyetaraan', AK_INPASSING_LAMA:'akInpassingLama',
+  CATATAN:'catatanKetidakpastian'
+};
+const AI_FIELD_LABEL = {
+  jenisPengangkatan:"Jenis Pengangkatan", ijazah:"Ijazah", jabatanSaatIni:"Jabatan Saat Ini",
+  jenjangDituju:"Jenjang Dituju", golonganSaatIni:"Golongan Saat Ini", golonganTerendah:"Golongan Terendah?",
+  tmtBulan:"TMT Bulan", tmtTahun:"TMT Tahun", sampaiBulan:"Sampai Bulan", sampaiTahun:"Sampai Tahun",
+  bulanButuhPerbaikan:"Bulan Butuh Perbaikan", bulanBaik:"Bulan Baik", bulanSangatBaik:"Bulan Sangat Baik",
+  bulanKurang:"Bulan Kurang", bulanSangatKurang:"Bulan Sangat Kurang",
+  sebabPK:"Sebab Diberhentikan", jenjangAsal:"Jenjang Sebelum Diberhentikan", akKumulatifTerakhir:"AK Kumulatif Terakhir",
+  adaKinerjaTambahan:"Ada Kinerja Tambahan?", terapkanPemenuhanPangkat:"Terapkan AK Pemenuhan?",
+  golonganSebelumNaik:"Golongan Sebelum Naik", asalPerpindahan:"Asal Perpindahan", akJfSebelumnya:"AK dari JF Sebelumnya",
+  modePenyetaraan:"Mode Penyetaraan", akInpassingLama:"AK Inpassing Lama"
+};
+const AI_BOOLEAN_FIELDS = ['adaKinerjaTambahan','terapkanPemenuhanPangkat'];
+const AI_NUMBER_FIELDS = ['tmtBulan','tmtTahun','sampaiBulan','sampaiTahun','bulanButuhPerbaikan','bulanBaik',
+  'bulanSangatBaik','bulanKurang','bulanSangatKurang','akKumulatifTerakhir','akJfSebelumnya','akInpassingLama'];
+
+function parseTeksTerstruktur(teks){
+  const result = {};
+  teks.split('\n').forEach(line => {
+    const m = line.trim().match(/^([A-Za-z_]+)\s*:\s*(.*)$/);
+    if(!m) return;
+    const internalKey = AI_FIELD_MAPPING[m[1].trim().toUpperCase()];
+    if(!internalKey) return;
+    let val = m[2].trim();
+    if(!val || /^(-+|kosong|tidak ada|n\/a|null|belum diketahui)$/i.test(val)) val = null;
+    if(AI_BOOLEAN_FIELDS.includes(internalKey)){
+      result[internalKey] = val ? /^ya$/i.test(val) : null;
+    } else if(AI_NUMBER_FIELDS.includes(internalKey)){
+      result[internalKey] = val !== null ? num(val) : null;
+    } else {
+      result[internalKey] = val;
+    }
+  });
+  return result;
+}
+
+
+
+// Definisi jenis input untuk tiap field di pop-up konfirmasi AI, supaya bisa diedit
+// langsung sebelum diterapkan ke form (bukan cuma tampilan baca-saja).
+const AI_FIELD_TYPE = {
+  jenisPengangkatan: { type:'select', options: () => CFG.jenisPengangkatanList },
+  ijazah: { type:'select', options: () => CFG.ijazahList },
+  jabatanSaatIni: { type:'text' },
+  jenjangDituju: { type:'select', options: () => CFG.jenjangList },
+  golonganSaatIni: { type:'select', options: () => CFG.golonganList },
+  golonganTerendah: { type:'select', options: () => ['Ya','Tidak'] },
+  tmtBulan: { type:'number' }, tmtTahun: { type:'number' },
+  sampaiBulan: { type:'number' }, sampaiTahun: { type:'number' },
+  bulanButuhPerbaikan: { type:'number' }, bulanBaik: { type:'number' }, bulanSangatBaik: { type:'number' },
+  bulanKurang: { type:'number' }, bulanSangatKurang: { type:'number' },
+  sebabPK: { type:'select', options: () => ['administrasi','tugas_belajar'] },
+  jenjangAsal: { type:'select', options: () => CFG.jenjangList },
+  akKumulatifTerakhir: { type:'number' },
+  adaKinerjaTambahan: { type:'select', options: () => ['Ya','Tidak'] },
+  terapkanPemenuhanPangkat: { type:'select', options: () => ['Ya','Tidak'] },
+  golonganSebelumNaik: { type:'select', options: () => CFG.golonganList },
+  asalPerpindahan: { type:'select', options: () => ['administrasi','antar_jf'] },
+  akJfSebelumnya: { type:'number' },
+  modePenyetaraan: { type:'select', options: () => ['normal','koreksi_inpassing'] },
+  akInpassingLama: { type:'number' },
+};
+const AI_BOOLEAN_TO_YATIDAK = ['adaKinerjaTambahan','terapkanPemenuhanPangkat'];
+
+function tampilkanKonfirmasiAI(extracted){
+  window._pendingAIExtraction = extracted;
+  const modal = document.getElementById('aiConfirmModal');
+  const body = document.getElementById('aiConfirmBody');
+  const rows = Object.keys(AI_FIELD_LABEL).map(k => {
+    const def = AI_FIELD_TYPE[k] || { type:'text' };
+    let rawVal = extracted[k];
+    if(AI_BOOLEAN_TO_YATIDAK.includes(k)) rawVal = rawVal === true ? 'Ya' : rawVal === false ? 'Tidak' : '';
+    const dispVal = (rawVal === null || rawVal === undefined) ? '' : String(rawVal);
+    const inputId = `aiEdit_${k}`;
+    let inputHtml;
+    if(def.type === 'select'){
+      const opts = def.options();
+      inputHtml = `<select id="${inputId}"><option value="">-- kosong --</option>` +
+        opts.map(o => `<option value="${escapeAttr(o)}" ${o===dispVal?'selected':''}>${escapeHtml(o)}</option>`).join('') +
+        `</select>`;
+    } else if(def.type === 'number'){
+      inputHtml = `<input type="number" step="any" id="${inputId}" value="${escapeAttr(dispVal)}">`;
+    } else {
+      inputHtml = `<input type="text" id="${inputId}" value="${escapeAttr(dispVal)}">`;
+    }
+    return `<div class="ai-field ai-field-edit"><span>${escapeHtml(AI_FIELD_LABEL[k])}</span>${inputHtml}</div>`;
+  }).join('');
+  body.innerHTML = `<div class="small-muted" style="margin-bottom:8px">Periksa &amp; edit langsung kalau ada yang kurang pas, baru klik "Ya, Isi ke Form".</div>
+    ${rows}
+    ${extracted.catatanKetidakpastian ? `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line);color:#a6772c">⚠ Catatan dari AI: ${escapeHtml(extracted.catatanKetidakpastian)}</div>` : ''}`;
+  modal.style.display = 'flex';
+}
+function konfirmasiAITerapkan(){
+  if(window._pendingAIExtraction){
+    const corrected = {};
+    Object.keys(AI_FIELD_LABEL).forEach(k => {
+      const el = document.getElementById(`aiEdit_${k}`);
+      if(!el) return;
+      let v = el.value.trim();
+      if(v === ''){ corrected[k] = null; return; }
+      if(AI_BOOLEAN_TO_YATIDAK.includes(k)){
+        corrected[k] = /^ya$/i.test(v);
+      } else if(AI_NUMBER_FIELDS.includes(k)){
+        corrected[k] = num(v);
+      } else {
+        corrected[k] = v;
+      }
+    });
+    terapkanHasilAI(corrected);
+  }
+  document.getElementById('aiConfirmModal').style.display = 'none';
+  toast('Form telah diisi — periksa & sesuaikan sebelum menekan Hitung Angka Kredit.');
+}
+function konfirmasiAIBatal(){
+  document.getElementById('aiConfirmModal').style.display = 'none';
+}
+
+function terapkanHasilAI(x){
+  const setVal = (id, v) => { const el = document.getElementById(id); if(el && v !== null && v !== undefined && v !== '') el.value = v; };
+  const setCheck = (id, v) => { const el = document.getElementById(id); if(el && v === true) el.checked = true; };
+
+  setVal('f_jenis', x.jenisPengangkatan);
+  setVal('f_ijazah', x.ijazah);
+  setVal('f_jenjang', x.jenjangDituju);
+  setVal('f_golongan', x.golonganSaatIni);
+  setVal('f_gol_terendah', x.golonganTerendah);
+  setVal('f_tmt_bulan', x.tmtBulan);
+  setVal('f_tmt_tahun', x.tmtTahun);
+  setVal('f_sampai_bulan', x.sampaiBulan);
+  setVal('f_sampai_tahun', x.sampaiTahun);
+
+  if(x.jabatanSaatIni){ setJabatanValue(x.jabatanSaatIni); }
+
+  // Trigger konteks Jenis Pengangkatan dulu supaya field kondisional muncul
+  updateJenisContext();
+
+  setVal('f_sebab_pk', x.sebabPK);
+  setVal('f_jenjang_asal', x.jenjangAsal);
+  setVal('f_ak_kumulatif', x.akKumulatifTerakhir);
+  setCheck('f_ada_kinerja_tambahan', x.adaKinerjaTambahan);
+  setCheck('f_terapkan_pemenuhan_pangkat', x.terapkanPemenuhanPangkat);
+  setVal('f_golongan_sebelum_naik', x.golonganSebelumNaik);
+  setVal('f_asal_perpindahan', x.asalPerpindahan);
+  setVal('f_ak_jf_sebelumnya', x.akJfSebelumnya);
+  setVal('f_mode_penyetaraan', x.modePenyetaraan);
+  setVal('f_ak_inpassing_lama', x.akInpassingLama);
+
+  // Trigger ulang supaya field yang baru terisi (sebabPK, asalPerpindahan, dst) ikut memicu tampilan yang benar
+  updateJenisContext();
+  updateLivePreview();
+
+  // Isi predikat kinerja ke field tersembunyi SETELAH updateLivePreview (yang otomatis membuat segmen kosong
+  // dan menimpa field ini ke 0) — sama seperti saat memuat dari Riwayat, segmen tetap kosong secara visual
+  // tapi total tetap benar dipakai untuk perhitungan.
+  setVal('f_s', x.bulanButuhPerbaikan ?? 0);
+  setVal('f_t', x.bulanBaik ?? 0);
+  setVal('f_u', x.bulanSangatBaik ?? 0);
+  setVal('f_k', x.bulanKurang ?? 0);
+  setVal('f_sk', x.bulanSangatKurang ?? 0);
+  try{
+    const inpCheck = {
+      jenisPengangkatan: val('f_jenis'), ijazah: val('f_ijazah'), golonganSaatIni: val('f_golongan'),
+      tmtBulan: val('f_tmt_bulan'), tmtTahun: val('f_tmt_tahun'),
+      sampaiBulan: val('f_sampai_bulan'), sampaiTahun: val('f_sampai_tahun'),
+    };
+    const periodeCheck = computeRecognizedPeriod(inpCheck);
+    updatePredikatSumCheck(periodeCheck.warn && periodeCheck.warn.length ? null : periodeCheck.BF);
+  }catch(e){ /* biarkan, bukan bagian kritikal */ }
+}
+
 function getFormInput(){
   return {
     nama: val('f_nama'),
@@ -2799,6 +3116,7 @@ function initDisclaimerModal(){
 
 document.addEventListener('DOMContentLoaded', initApp);
 document.addEventListener('DOMContentLoaded', initDisclaimerModal);
+
 
 
 </script>
