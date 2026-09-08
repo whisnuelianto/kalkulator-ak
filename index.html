@@ -1804,8 +1804,7 @@ const AI_FIELD_MAPPING = {
   JENIS_PENGANGKATAN:'jenisPengangkatan', IJAZAH:'ijazah', JABATAN_SAAT_INI:'jabatanSaatIni',
   JENJANG_DITUJU:'jenjangDituju', GOLONGAN_SAAT_INI:'golonganSaatIni', GOLONGAN_TERENDAH:'golonganTerendah',
   TMT_BULAN:'tmtBulan', TMT_TAHUN:'tmtTahun', SAMPAI_BULAN:'sampaiBulan', SAMPAI_TAHUN:'sampaiTahun',
-  BULAN_BUTUH_PERBAIKAN:'bulanButuhPerbaikan', BULAN_BAIK:'bulanBaik', BULAN_SANGAT_BAIK:'bulanSangatBaik',
-  BULAN_KURANG:'bulanKurang', BULAN_SANGAT_KURANG:'bulanSangatKurang',
+  PREDIKAT_KINERJA:'predikatKinerja',
   SEBAB_PK:'sebabPK', JENJANG_ASAL:'jenjangAsal', AK_KUMULATIF_TERAKHIR:'akKumulatifTerakhir',
   ADA_KINERJA_TAMBAHAN:'adaKinerjaTambahan', TERAPKAN_PEMENUHAN_PANGKAT:'terapkanPemenuhanPangkat',
   GOLONGAN_SEBELUM_NAIK:'golonganSebelumNaik', ASAL_PERPINDAHAN:'asalPerpindahan',
@@ -1816,16 +1815,49 @@ const AI_FIELD_LABEL = {
   jenisPengangkatan:"Jenis Pengangkatan", ijazah:"Ijazah", jabatanSaatIni:"Jabatan Saat Ini",
   jenjangDituju:"Jenjang Dituju", golonganSaatIni:"Golongan Saat Ini", golonganTerendah:"Golongan Terendah?",
   tmtBulan:"TMT Bulan", tmtTahun:"TMT Tahun", sampaiBulan:"Sampai Bulan", sampaiTahun:"Sampai Tahun",
-  bulanButuhPerbaikan:"Bulan Butuh Perbaikan", bulanBaik:"Bulan Baik", bulanSangatBaik:"Bulan Sangat Baik",
-  bulanKurang:"Bulan Kurang", bulanSangatKurang:"Bulan Sangat Kurang",
+  predikatKinerja:"Predikat Kinerja",
   sebabPK:"Sebab Diberhentikan", jenjangAsal:"Jenjang Sebelum Diberhentikan", akKumulatifTerakhir:"AK Kumulatif Terakhir",
   adaKinerjaTambahan:"Ada Kinerja Tambahan?", terapkanPemenuhanPangkat:"Terapkan AK Pemenuhan?",
   golonganSebelumNaik:"Golongan Sebelum Naik", asalPerpindahan:"Asal Perpindahan", akJfSebelumnya:"AK dari JF Sebelumnya",
   modePenyetaraan:"Mode Penyetaraan", akInpassingLama:"AK Inpassing Lama"
 };
 const AI_BOOLEAN_FIELDS = ['adaKinerjaTambahan','terapkanPemenuhanPangkat'];
-const AI_NUMBER_FIELDS = ['tmtBulan','tmtTahun','sampaiBulan','sampaiTahun','bulanButuhPerbaikan','bulanBaik',
-  'bulanSangatBaik','bulanKurang','bulanSangatKurang','akKumulatifTerakhir','akJfSebelumnya','akInpassingLama'];
+const AI_NUMBER_FIELDS = ['tmtBulan','tmtTahun','sampaiBulan','sampaiTahun','akKumulatifTerakhir','akJfSebelumnya','akInpassingLama'];
+// Label predikat (seperti ditulis AI/manusia) -> kunci internal yang dipakai sistem
+const PREDIKAT_LABEL_TO_KEY = {
+  'sangat kurang':'sangatKurang', 'kurang':'kurang', 'butuh perbaikan':'butuhPerbaikan',
+  'baik':'baik', 'sangat baik':'sangatBaik'
+};
+function normalisasiPredikatLabel(s){
+  return PREDIKAT_LABEL_TO_KEY[String(s||'').trim().toLowerCase()] || null;
+}
+// Menerapkan spesifikasi PREDIKAT_KINERJA (satu kata seragam, atau "tahun:predikat;tahun:predikat")
+// ke segmen periode yang SUDAH terbentuk (periodSegments) — pembagian jumlah bulan tetap dihitung
+// oleh kode ini sendiri (bukan oleh AI), supaya tidak rawan salah hitung.
+function terapkanPredikatKinerjaKeSegmen(specString){
+  if(!specString || !periodSegments.length) return;
+  const spec = specString.trim();
+  let yearMap = null, uniformKey = null;
+  if(/\d{4}\s*:/.test(spec)){
+    yearMap = {};
+    spec.split(';').forEach(pair => {
+      const idx = pair.indexOf(':');
+      if(idx === -1) return;
+      const yearStr = pair.slice(0, idx).trim();
+      const predStr = pair.slice(idx + 1).trim();
+      const year = parseInt(yearStr, 10);
+      const key = normalisasiPredikatLabel(predStr);
+      if(!isNaN(year) && key) yearMap[year] = key;
+    });
+  } else {
+    uniformKey = normalisasiPredikatLabel(spec);
+  }
+  if(!yearMap && !uniformKey) return;
+  periodSegments.forEach(seg => {
+    if(yearMap && yearMap[seg.year] !== undefined) seg.predikat = yearMap[seg.year];
+    else if(uniformKey) seg.predikat = uniformKey;
+  });
+}
 
 function parseTeksTerstruktur(teks){
   const result = {};
@@ -1966,6 +1998,7 @@ function terapkanHasilAI(x){
     const el = document.getElementById(id); if(el) el.checked = false;
   });
   setJabatanValue('');
+  periodSegments = []; // hindari sisa predikat dari perhitungan sebelumnya ikut "ketiban" ke segmen baru
 
   // Sekarang isi HANYA yang berhasil dideteksi AI (atau dikoreksi manual di pop-up) — sisanya
   // tetap kosong sesuai reset di atas.
@@ -1994,17 +2027,17 @@ function terapkanHasilAI(x){
 
   // Baru sekarang picu ulang seluruh logika tampil/sembunyi kondisional, dengan keadaan yang
   // sudah bersih+terisi konsisten — persis seperti pengguna mengisi form ini secara manual dari awal.
+  // updateLivePreview() ini juga otomatis membentuk daftar periode (periodSegments), masih kosong
+  // predikatnya di titik ini.
   updateJenisContext();
   updateLivePreview();
 
-  // Isi predikat kinerja ke field tersembunyi SETELAH updateLivePreview (yang otomatis membuat segmen kosong
-  // dan menimpa field ini ke 0) — sama seperti saat memuat dari Riwayat, segmen tetap kosong secara visual
-  // tapi total tetap benar dipakai untuk perhitungan.
-  setVal('f_s', x.bulanButuhPerbaikan ?? 0);
-  setVal('f_t', x.bulanBaik ?? 0);
-  setVal('f_u', x.bulanSangatBaik ?? 0);
-  setVal('f_k', x.bulanKurang ?? 0);
-  setVal('f_sk', x.bulanSangatKurang ?? 0);
+  // Terapkan PREDIKAT_KINERJA dari AI ke segmen periode yang baru terbentuk — jumlah bulan tetap
+  // DIHITUNG OLEH KODE INI SENDIRI (bukan oleh AI), supaya tidak rawan salah hitung/salah jumlah.
+  if(x.predikatKinerja){
+    terapkanPredikatKinerjaKeSegmen(x.predikatKinerja);
+    recomputePredikatTotalsFromSegments();
+  }
   try{
     const inpCheck = {
       jenisPengangkatan: val('f_jenis'), ijazah: val('f_ijazah'), golonganSaatIni: val('f_golongan'),
@@ -2012,6 +2045,11 @@ function terapkanHasilAI(x){
       sampaiBulan: val('f_sampai_bulan'), sampaiTahun: val('f_sampai_tahun'),
     };
     const periodeCheck = computeRecognizedPeriod(inpCheck);
+    if(!(periodeCheck.warn && periodeCheck.warn.length)){
+      // Render ulang tabel periode supaya dropdown predikat yang baru diterapkan tadi tampil
+      // terpilih secara visual (bukan cuma benar di belakang layar).
+      renderPeriodSegments(periodeCheck);
+    }
     updatePredikatSumCheck(periodeCheck.warn && periodeCheck.warn.length ? null : periodeCheck.BF);
   }catch(e){ /* biarkan, bukan bagian kritikal */ }
 }
