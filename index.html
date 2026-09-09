@@ -1757,6 +1757,45 @@ function escapeHtml(s){
 // tersimpan di kode ini, hanya di server Worker tersebut.
 const AI_WORKER_URL = "https://kalkulator-ak-proxy.whisnudataanalis.workers.dev";
 
+// Sekali panggil ke Worker. Melempar Error kalau gagal (dipakai oleh mekanisme coba-ulang di bawah).
+async function panggilAIWorkerSekali(deskripsi){
+  const response = await fetch(AI_WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: deskripsi })
+  });
+  const data = await response.json();
+  if(!response.ok || data.error){
+    let detail = data.error || '';
+    if(!detail && data.raw){
+      try{ detail = data.raw.error?.message || JSON.stringify(data.raw).slice(0, 300); }catch(e){}
+    }
+    throw new Error(detail || `Server merespons status ${response.status}`);
+  }
+  return data;
+}
+
+// Beberapa error (terutama soal lokasi server) sifatnya SEMENTARA — server Cloudflare yang menangani
+// permintaan bisa beda-beda tiap kali, jadi dicoba ulang otomatis dulu sebelum benar-benar menyerah,
+// supaya pengguna tidak perlu klik ulang manual setiap kali kebetulan kena server yang bermasalah.
+const AI_RETRYABLE_ERROR_PATTERNS = [/location is not supported/i, /rate limit/i, /timeout/i, /503/, /overloaded/i];
+async function panggilAIWorkerDenganCobaUlang(deskripsi, maksimalPercobaan = 3){
+  let lastErr;
+  for(let percobaan = 1; percobaan <= maksimalPercobaan; percobaan++){
+    try{
+      return await panggilAIWorkerSekali(deskripsi);
+    }catch(err){
+      lastErr = err;
+      const bisaDicobaUlang = AI_RETRYABLE_ERROR_PATTERNS.some(re => re.test(err.message));
+      if(!bisaDicobaUlang || percobaan === maksimalPercobaan) throw err;
+      const statusWrap = document.getElementById('ai_status_wrap');
+      if(statusWrap) statusWrap.innerHTML = `<div class="ai-loading">⏳ Percobaan ${percobaan} gagal (server sibuk), mencoba lagi...</div>`;
+      await new Promise(r => setTimeout(r, 800));
+    }
+  }
+  throw lastErr;
+}
+
 async function prosesDeskripsiOtomatis(){
   const deskripsi = (document.getElementById('ai_deskripsi').value || '').trim();
   const statusWrap = document.getElementById('ai_status_wrap');
@@ -1768,21 +1807,7 @@ async function prosesDeskripsiOtomatis(){
   btn.disabled = true;
 
   try{
-    const response = await fetch(AI_WORKER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: deskripsi })
-    });
-    const data = await response.json();
-    if(!response.ok || data.error){
-      // Tampilkan detail mentah dari Gemini/Worker (kalau ada) supaya penyebab pastinya kelihatan,
-      // bukan cuma "status 400" yang tidak informatif.
-      let detail = data.error || '';
-      if(!detail && data.raw){
-        try{ detail = data.raw.error?.message || JSON.stringify(data.raw).slice(0, 300); }catch(e){}
-      }
-      throw new Error(detail || `Server merespons status ${response.status}`);
-    }
+    const data = await panggilAIWorkerDenganCobaUlang(deskripsi);
     const teks = (data.text || '').trim();
     if(!teks){ throw new Error('AI tidak mengembalikan teks yang bisa dibaca.'); }
 
