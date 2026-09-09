@@ -1957,11 +1957,56 @@ function bangunSegmenPratinjauAI(extracted){
   }catch(e){ return []; }
 }
 
+// Menentukan apakah suatu field relevan ditampilkan di pop-up konfirmasi, MENIRU PERSIS logika
+// tampil/sembunyi kondisional yang dipakai form utama (updateJenisContext) — supaya tidak ada field
+// yang tidak relevan ikut nongol (mis. field khusus Pengangkatan Kembali muncul padahal Jenis
+// Pengangkatan-nya Perpindahan).
+function isAIFieldRelevan(fieldKey, extracted){
+  const jenis = extracted.jenisPengangkatan;
+  const isPK = jenis === 'Pengangkatan Kembali';
+  const isTubel = isPK && extracted.sebabPK === 'tugas_belajar';
+  const isPKAdministrasi = isPK && !isTubel;
+  const isPerpindahan = jenis === 'Perpindahan';
+  const isAntarJF = isPerpindahan && extracted.asalPerpindahan === 'antar_jf';
+  const isPenyetaraan = jenis === 'Penyetaraan';
+  const isKoreksiInpassing = isPenyetaraan && extracted.modePenyetaraan === 'koreksi_inpassing';
+
+  switch(fieldKey){
+    case 'sebabPK':
+    case 'akKumulatifTerakhir':
+      return isPK;
+    case 'jenjangAsal':
+      return isPKAdministrasi;
+    case 'adaKinerjaTambahan':
+      return isTubel;
+    case 'terapkanPemenuhanPangkat':
+    case 'golonganSebelumNaik':
+      return isPKAdministrasi;
+    case 'asalPerpindahan':
+      return isPerpindahan;
+    case 'akJfSebelumnya':
+      return isAntarJF;
+    case 'modePenyetaraan':
+      return isPenyetaraan;
+    case 'akInpassingLama':
+      return isKoreksiInpassing;
+    case 'tmtBulan': case 'tmtTahun': case 'sampaiBulan': case 'sampaiTahun':
+      // Kartu Masa Kerja Golongan disembunyikan sepenuhnya untuk 3 mode ini di form utama
+      return !(isAntarJF || isKoreksiInpassing || (isTubel && !extracted.adaKinerjaTambahan));
+    default:
+      // Field umum (Jenis Pengangkatan, Ijazah, Jabatan, Jenjang Dituju, Golongan, Golongan Terendah)
+      // selalu relevan, ada di semua mode.
+      return true;
+  }
+}
+
 function tampilkanKonfirmasiAI(extracted, rawTeks){
   window._pendingAIExtraction = extracted;
   const modal = document.getElementById('aiConfirmModal');
   const body = document.getElementById('aiConfirmBody');
-  const rows = Object.keys(AI_FIELD_LABEL).filter(k => k !== 'predikatKinerja').map(k => {
+  const rows = Object.keys(AI_FIELD_LABEL)
+    .filter(k => k !== 'predikatKinerja' && isAIFieldRelevan(k, extracted))
+    .map(k => {
     const def = AI_FIELD_TYPE[k] || { type:'text' };
     let rawVal = extracted[k];
     if(AI_BOOLEAN_TO_YATIDAK.includes(k)) rawVal = rawVal === true ? 'Ya' : rawVal === false ? 'Tidak' : '';
@@ -1983,10 +2028,20 @@ function tampilkanKonfirmasiAI(extracted, rawTeks){
 
   // Predikat Kinerja ditampilkan PECAH PER PERIODE (persis seperti tabel di form utama), bukan satu
   // kotak teks gabungan — supaya bisa diperiksa & diedit per periode langsung di pop-up ini.
-  const previewSegments = bangunSegmenPratinjauAI(extracted);
+  // Untuk mode yang tidak butuh Masa Kerja/Predikat Kinerja sama sekali (Antar-JF, Koreksi Inpassing,
+  // Tugas Belajar tanpa kinerja tambahan), blok ini disembunyikan sepenuhnya — meniru form utama.
+  const jenisPratinjau = extracted.jenisPengangkatan;
+  const isAntarJFPratinjau = jenisPratinjau === 'Perpindahan' && extracted.asalPerpindahan === 'antar_jf';
+  const isKoreksiInpassingPratinjau = jenisPratinjau === 'Penyetaraan' && extracted.modePenyetaraan === 'koreksi_inpassing';
+  const isTubelTanpaKinerjaPratinjau = jenisPratinjau === 'Pengangkatan Kembali' && extracted.sebabPK === 'tugas_belajar' && !extracted.adaKinerjaTambahan;
+  const predikatTidakRelevan = isAntarJFPratinjau || isKoreksiInpassingPratinjau || isTubelTanpaKinerjaPratinjau;
+
+  const previewSegments = predikatTidakRelevan ? [] : bangunSegmenPratinjauAI(extracted);
   window._pendingAIPeriodSegments = previewSegments;
-  let predikatBlock;
-  if(previewSegments.length){
+  let predikatBlock = '';
+  if(predikatTidakRelevan){
+    // tidak menampilkan apa pun — sama seperti form utama yang menyembunyikan seluruh kartu ini
+  } else if(previewSegments.length){
     predikatBlock = `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">
       <div class="small-muted" style="margin-bottom:4px">Predikat Kinerja per Periode (tebakan AI — periksa &amp; ganti kalau perlu)</div>
       ${previewSegments.map((seg,i) => `
