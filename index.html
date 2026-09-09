@@ -1775,10 +1775,9 @@ async function panggilAIWorkerSekali(deskripsi){
   return data;
 }
 
-// Beberapa error (terutama soal lokasi server) sifatnya SEMENTARA — server Cloudflare yang menangani
-// permintaan bisa beda-beda tiap kali, jadi dicoba ulang otomatis dulu sebelum benar-benar menyerah,
-// supaya pengguna tidak perlu klik ulang manual setiap kali kebetulan kena server yang bermasalah.
-const AI_RETRYABLE_ERROR_PATTERNS = [/location is not supported/i, /rate limit/i, /timeout/i, /503/, /overloaded/i];
+// Beberapa error (soal lokasi server, atau kena batas kuota jatah gratis) sifatnya SEMENTARA — dicoba
+// ulang otomatis dulu sebelum benar-benar menyerah, supaya pengguna tidak perlu klik ulang manual.
+const AI_RETRYABLE_ERROR_PATTERNS = [/location is not supported/i, /rate limit/i, /timeout/i, /503/, /overloaded/i, /quota/i, /exceeded/i];
 async function panggilAIWorkerDenganCobaUlang(deskripsi, maksimalPercobaan = 3){
   let lastErr;
   for(let percobaan = 1; percobaan <= maksimalPercobaan; percobaan++){
@@ -1788,9 +1787,13 @@ async function panggilAIWorkerDenganCobaUlang(deskripsi, maksimalPercobaan = 3){
       lastErr = err;
       const bisaDicobaUlang = AI_RETRYABLE_ERROR_PATTERNS.some(re => re.test(err.message));
       if(!bisaDicobaUlang || percobaan === maksimalPercobaan) throw err;
+      // Kalau pesan errornya menyebutkan saran waktu tunggu (mis. "retry in 6.7s" pada error kuota),
+      // pakai saran itu (plus sedikit tambahan jaga-jaga) — bukan jeda tetap yang bisa jadi kurang lama.
+      const retryMatch = err.message.match(/retry in\s*([\d.]+)\s*s/i);
+      const waitMs = retryMatch ? Math.ceil(parseFloat(retryMatch[1]) * 1000) + 800 : 1500;
       const statusWrap = document.getElementById('ai_status_wrap');
-      if(statusWrap) statusWrap.innerHTML = `<div class="ai-loading">⏳ Percobaan ${percobaan} gagal (server sibuk), mencoba lagi...</div>`;
-      await new Promise(r => setTimeout(r, 800));
+      if(statusWrap) statusWrap.innerHTML = `<div class="ai-loading">⏳ Server AI sedang sibuk/kena batas kuota — mencoba lagi dalam ${Math.ceil(waitMs/1000)} detik...</div>`;
+      await new Promise(r => setTimeout(r, waitMs));
     }
   }
   throw lastErr;
