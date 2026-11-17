@@ -6,8 +6,8 @@
 <title>Kalkulator Angka Kredit Jabatan Fungsional</title>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <style>
-
 
 
 
@@ -171,19 +171,9 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 
 
 
-
-.tj-badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:#eef2f6;color:var(--navy2);margin-bottom:8px}
-.tj-badge.faq{background:#e6f4ea;color:#1e6b3a}
-.tj-answer p{margin:0 0 9px;line-height:1.6;font-size:14px}
-.tj-answer ul{margin:0 0 9px;padding-left:20px;line-height:1.6;font-size:14px}
-#tj_q,#tjm_isi,#tjf_jawab,#tjs_instruksi{width:100%;padding:10px 12px;border:1px solid #c9d2da;border-radius:8px;font-size:13.5px;font-family:inherit;resize:vertical}
-#viewTanya details{border-bottom:1px solid var(--line);padding:8px 0}
-#viewTanya summary{cursor:pointer;font-weight:600;font-size:13.5px}
-
 </style>
 </head>
 <body>
-
 
 
 <header class="topbar">
@@ -196,11 +186,9 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 <div id="storageBanner" class="storage-banner"></div>
 <nav class="tabs">
   <button class="active" data-tab="kalkulator">Kalkulator</button>
-  <button data-tab="tanya">Tanya Jawab JF</button>
   <button data-tab="riwayat">Riwayat <span class="badge-count" id="historyCount">0</span></button>
   <button data-tab="referensi">⚙ Admin: Tabel Referensi</button>
   <button data-tab="aturan">⚙ Admin: Aturan Kustom</button>
-  <button data-tab="tanyaAdmin">⚙ Admin: Tanya Jawab</button>
   <button data-tab="bantuan">Bantuan</button>
 </nav>
 <main>
@@ -384,41 +372,6 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
   </section>
 
   <!-- ============ RIWAYAT ============ -->
-  <!-- ============ TANYA JAWAB PEMBINAAN JF ============ -->
-  <section id="viewTanya" class="view">
-    <div class="card ai-card">
-      <h2>💬 Tanya Jawab Pembinaan Jabatan Fungsional</h2>
-      <div class="sub" id="tj_pembuka">Tuliskan pertanyaan Anda seputar pembinaan Jabatan Fungsional. Jawaban langsung tampil, disusun dari bahan pembinaan yang disiapkan admin.</div>
-      <textarea id="tj_q" rows="3" maxlength="800" placeholder="Contoh: Apa bedanya kenaikan pangkat dengan kenaikan jenjang pada Jabatan Fungsional?"></textarea>
-      <div class="actions" style="margin-top:10px">
-        <button class="btn gold" id="tj_btn" onclick="tjTanya()">Kirim Pertanyaan</button>
-        <span class="small-muted" id="tj_hitung"></span>
-      </div>
-      <div class="small-muted" style="margin-top:8px">Pertanyaan dicatat untuk perbaikan layanan. Jangan menuliskan data pribadi (NIP, nomor telepon, dsb).</div>
-      <div id="tj_status" style="display:none;margin-top:10px"></div>
-    </div>
-
-    <div class="card" id="tj_jawabCard" style="display:none">
-      <div id="tj_badge" class="tj-badge"></div>
-      <div id="tj_jawab" class="tj-answer"></div>
-      <div id="tj_sumber" class="small-muted" style="margin-top:8px"></div>
-      <div class="actions" style="margin-top:12px" id="tj_fbWrap">
-        <span class="small-muted">Apakah jawaban ini membantu?</span>
-        <button class="btn secondary small" onclick="tjFeedback('ya')">👍 Membantu</button>
-        <button class="btn secondary small" onclick="tjFeedback('tidak')">👎 Kurang membantu</button>
-      </div>
-      <div class="warn-box" style="margin-top:12px">
-        <span class="k-eyebrow">Perhatian</span>
-        <p>Jawaban disusun otomatis dari bahan pembinaan dan dapat keliru atau belum mutakhir. Untuk keputusan kepegawaian, rujuk peraturan yang berlaku atau hubungi Instansi Pembina JF. <span id="tj_kontak"></span></p>
-      </div>
-    </div>
-
-    <div class="card" id="tj_faqCard" style="display:none">
-      <h2>Pertanyaan yang Sering Diajukan</h2>
-      <div id="tj_faqList"></div>
-    </div>
-  </section>
-
   <section id="viewRiwayat" class="view">
     <div class="card">
       <h2>Riwayat Perhitungan</h2>
@@ -428,7 +381,7 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       </div>
       <div class="table-scroll">
         <table class="data">
-          <thead><tr><th>No</th><th>Nama</th><th>Jenis Pengangkatan</th><th>Jabatan → Jenjang</th><th>Golongan</th><th>Tahun Konversi</th><th>Periode Konversi</th><th style="text-align:right">Total AK</th><th></th></tr></thead>
+          <thead><tr><th>No</th><th>Nama</th><th>Jenis Pengangkatan</th><th>Jabatan → Jenjang</th><th>Golongan</th><th style="text-align:right">Total AK</th><th></th></tr></thead>
           <tbody id="historyBody"></tbody>
         </table>
       </div>
@@ -439,7 +392,7 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
   <section id="viewReferensi" class="view">
     <div class="card">
       <h2>⚙ Panel Admin — Tabel Referensi</h2>
-      <div class="sub">Akses panel ini dilindungi PIN Admin. Perubahan yang disimpan akan terlihat oleh <b>semua pengguna</b> saat aplikasi berjalan dalam Mode Terpusat (lihat banner di atas). Klik <b>"Simpan Semua Perubahan"</b> di bagian bawah setelah mengedit.</div>
+      <div class="sub">Akses panel ini khusus admin yang masuk dengan akun Google terdaftar. Perubahan yang disimpan akan terlihat oleh <b>semua pengguna</b> saat aplikasi berjalan dalam Mode Terpusat (lihat banner di atas). Klik <b>"Simpan Semua Perubahan"</b> di bagian bawah setelah mengedit.</div>
       <div class="actions" style="margin-top:0">
         <button class="btn gold" onclick="saveAllRefTables()">💾 Simpan Semua Perubahan</button>
         <button class="btn secondary" onclick="exportConfig()">Ekspor Konfigurasi (JSON)</button>
@@ -452,15 +405,11 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
     </div>
 
     <div class="card">
-      <h2>🔑 Ubah PIN Admin</h2>
-      <div class="sub">PIN ini dipakai untuk membatasi akses ke tab Referensi &amp; Aturan Kustom. Bagikan PIN baru ke admin lain setelah mengubahnya. PIN bawaan: <code class="k">1234</code> — segera ganti.</div>
-      <div class="grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="field"><label>PIN Saat Ini</label><input type="password" id="pin_current"></div>
-        <div class="field"><label>PIN Baru</label><input type="password" id="pin_baru"></div>
-        <div class="field"><label>Konfirmasi PIN Baru</label><input type="password" id="pin_konfirmasi"></div>
-      </div>
+      <h2>👤 Akun Admin</h2>
+      <div class="sub" id="akunAdminInfo">Belum masuk.</div>
+      <div class="sub">Hanya akun Google yang terdaftar di aturan keamanan Firebase (Firestore Rules) yang dapat menyimpan perubahan. Untuk menambah admin, tambahkan emailnya di daftar <code class="k">pemilikList()</code> pada Firestore Rules.</div>
       <div class="actions" style="margin-top:10px">
-        <button class="btn secondary" onclick="changeAdminPin()">Ubah PIN</button>
+        <button class="btn secondary" onclick="keluarAdmin()">Keluar dari akun admin</button>
       </div>
     </div>
 
@@ -619,95 +568,10 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
   </section>
 
   <!-- ============ BANTUAN ============ -->
-  <!-- ============ ADMIN: TANYA JAWAB ============ -->
-  <section id="viewTanyaAdmin" class="view">
-    <div class="card">
-      <h2>⚙ Panel Admin — Tanya Jawab Pembinaan JF</h2>
-      <div class="sub">Atur bahan jawaban, jawaban resmi (FAQ), dan tinjau pertanyaan yang masuk. Pertanyaan yang cocok dengan FAQ dijawab langsung tanpa memakai kuota AI.</div>
-    </div>
-
-    <div class="card">
-      <h2>Pengaturan</h2>
-      <div class="grid">
-        <div class="field"><label>Fitur Tanya Jawab</label>
-          <select id="tjs_enabled"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></div>
-        <div class="field"><label>Sumber bahan jawaban</label>
-          <select id="tjs_sumber"><option value="drive">Google Drive (lewat jembatan Apps Script)</option><option value="unggahan">Unggahan di panel ini</option></select></div>
-        <div class="field"><label>Gaya jawaban</label>
-          <select id="tjs_gaya"><option value="natural">Natural</option><option value="formal">Formal</option><option value="ringkas">Ringkas</option></select></div>
-        <div class="field"><label>Batas pertanyaan per perangkat per jam</label><input type="number" id="tjs_maxPerJam" min="1" max="100"></div>
-        <div class="field"><label>Jumlah kutipan bahan per jawaban</label><input type="number" id="tjs_topK" min="2" max="14"></div>
-      </div>
-      <div class="field"><label>Pesan pembuka di halaman pengguna</label><input type="text" id="tjs_pembuka"></div>
-      <div class="field"><label>Kontak untuk pertanyaan lanjutan (tampil di bawah jawaban)</label><input type="text" id="tjs_kontak" placeholder="mis. WhatsApp/email Bina JF"></div>
-      <div class="field"><label>Instruksi tambahan untuk AI (opsional)</label>
-        <textarea id="tjs_instruksi" rows="3" placeholder="mis. Gunakan sapaan Bapak/Ibu. Sebut Instansi Pembina JF bila pertanyaan menyangkut jabatan tertentu."></textarea>
-        <div class="hint">Aturan dasar (hanya memakai bahan, tidak mengarang) tetap berlaku dan tidak bisa dihapus dari sini.</div></div>
-      <div class="actions"><button class="btn gold" onclick="tjSimpanPengaturan()">Simpan Pengaturan</button></div>
-    </div>
-
-    <div class="card">
-      <h2>Sumber Google Drive</h2>
-      <div class="sub">Bahan dibaca dari satu folder Google Drive lewat skrip jembatan (Google Docs dan berkas .txt/.md, termasuk subfolder). Perubahan di Drive otomatis terbaca dalam sekitar 5 menit, tanpa unggah ulang. Cara pasang: PANDUAN_SUMBER_DRIVE.md.</div>
-      <div class="actions" style="margin-top:0"><button class="btn gold" id="tjd_btn" onclick="tjCekDrive()">Cek Isi Folder Drive</button></div>
-      <div id="tjd_hasil" class="small-muted" style="margin-top:10px"></div>
-    </div>
-
-    <div class="card">
-      <h2>Bahan Unggahan (dipakai bila sumber = Unggahan)</h2>
-      <div class="sub">Isi dari dokumen pembinaan JF (teks biasa atau Markdown). Dari Google Docs: File → Unduh → Teks biasa (.txt) atau Markdown (.md), lalu unggah di sini, atau salin-tempel isinya. Aplikasi ini tidak membaca folder Drive langsung.</div>
-      <div class="table-scroll"><table class="data">
-        <thead><tr><th>Judul</th><th>Karakter</th><th>Aktif</th><th></th></tr></thead>
-        <tbody id="tjm_list"></tbody></table></div>
-      <div class="divider"></div>
-      <div class="field"><label>Judul bahan</label><input type="text" id="tjm_judul" placeholder="mis. Basis Pengetahuan Angka Kredit JF"></div>
-      <div class="field"><label>Unggah berkas (.txt, .md, .csv)</label><input type="file" id="tjm_file" accept=".txt,.md,.csv,text/plain" onchange="tjMuatBerkas(this)"></div>
-      <div class="field"><label>Isi bahan</label><textarea id="tjm_isi" rows="8" placeholder="Tempel isi dokumen di sini..."></textarea>
-        <div class="hint" id="tjm_hint">Maksimal sekitar 250.000 karakter per bahan.</div></div>
-      <div class="actions">
-        <button class="btn gold" onclick="tjSimpanBahan()">Simpan Bahan</button>
-        <button class="btn secondary" onclick="tjBatalBahan()">Kosongkan Form</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Jawaban Resmi (FAQ)</h2>
-      <div class="sub">Pertanyaan yang sudah punya jawaban resmi dijawab langsung dan tampil di halaman pengguna. Anda bisa meminta AI membuat draf dari bahan, lalu menyuntingnya sebelum disimpan.</div>
-      <div class="table-scroll"><table class="data">
-        <thead><tr><th>Pertanyaan</th><th></th></tr></thead>
-        <tbody id="tjf_list"></tbody></table></div>
-      <div class="divider"></div>
-      <div class="field"><label>Pertanyaan</label><input type="text" id="tjf_tanya"></div>
-      <div class="field"><label>Jawaban</label><textarea id="tjf_jawab" rows="6"></textarea></div>
-      <div class="actions">
-        <button class="btn secondary" id="tjf_draftBtn" onclick="tjDraftFaq()">✨ Buat draf jawaban dengan AI</button>
-        <button class="btn gold" onclick="tjSimpanFaq()">Simpan FAQ</button>
-        <button class="btn secondary" onclick="tjBatalFaq()">Kosongkan Form</button>
-      </div>
-      <div id="tjf_status" class="small-muted" style="margin-top:8px"></div>
-    </div>
-
-    <div class="card">
-      <h2>Pertanyaan yang Masuk</h2>
-      <div class="actions" style="margin-top:0;margin-bottom:12px">
-        <button class="btn secondary" onclick="tjAdminRender(true)">Muat Ulang</button>
-        <button class="btn secondary" onclick="tjEksporLog()">Ekspor CSV</button>
-      </div>
-      <div class="table-scroll"><table class="data">
-        <thead><tr><th>Waktu</th><th>Pertanyaan</th><th>Jenis</th><th>Umpan balik</th><th></th></tr></thead>
-        <tbody id="tjl_list"></tbody></table></div>
-      <div class="small-muted" style="margin-top:6px">Jenis "kosong" berarti tidak ditemukan bahan yang relevan — tanda bahan perlu ditambah.</div>
-    </div>
-  </section>
-
   <section id="viewBantuan" class="view">
     <div class="card">
       <h2>📖 Panduan Mengisi Kalkulator</h2>
       <div class="sub">Langkah demi langkah untuk pengguna biasa (tab Kalkulator).</div>
-      <div class="warn-box" style="margin-bottom:14px">
-        <span class="k-eyebrow">💬 Tab Tanya Jawab JF</span>
-        <p>Ketik pertanyaan seputar pembinaan Jabatan Fungsional, jawaban langsung tampil. Jawaban disusun dari bahan yang disiapkan admin dan bisa keliru; tombol 👍/👎 membantu admin memperbaiki bahan. Pertanyaan dicatat, jadi jangan menulis data pribadi.</p>
-      </div>
       <div class="warn-box" style="margin-bottom:14px">
         <span class="k-eyebrow">🤖 Cara Tercepat: Isi Otomatis dari Deskripsi</span>
         <p>Di paling atas tab Kalkulator ada kotak "Isi Otomatis dari Deskripsi" —
@@ -764,9 +628,8 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
       <h2>🛠 Panduan untuk Admin</h2>
       <div class="sub">Cara mengelola tabel referensi &amp; aturan kustom saat ada regulasi baru atau kombinasi yang belum tercakup.</div>
       <ol style="padding-left:20px;line-height:1.9">
-        <li>Buka tab <b>"⚙ Admin: Tabel Referensi"</b> atau <b>"⚙ Admin: Aturan Kustom"</b> — akan diminta PIN
-        Admin. PIN bawaan <code class="k">1234</code>, segera ganti lewat kartu "Ubah PIN Admin" setelah pertama
-        kali masuk.</li>
+        <li>Buka tab <b>"⚙ Admin: Tabel Referensi"</b> atau <b>"⚙ Admin: Aturan Kustom"</b> — akan diminta masuk
+        dengan akun Google admin. Hanya email yang terdaftar di Firestore Rules yang diterima.</li>
         <li><b>Kapan harus ubah Tabel Referensi:</b> saat ada regulasi baru yang mengubah Norma AK Tahunan, AK
         Dasar, koefisien predikat kinerja, atau saat menemukan kombinasi Jabatan/Golongan/Jenjang yang belum
         terdaftar (biasanya ditandai status "Perlu Aturan Kustom" pada hasil perhitungan seseorang).</li>
@@ -994,12 +857,10 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
         tersimpan hanya di localStorage browser itu sendiri, tidak tersentralisasi. Lihat README.md yang menyertai
         berkas ini untuk langkah setup Firebase.</li>
       </ul>
-      <p><b>Soal keamanan PIN Admin:</b> PIN yang bisa diatur di tab Referensi hanyalah penghalang akses sederhana
-      di sisi tampilan (mencegah pengguna biasa tidak sengaja mengubah tabel), <i>bukan</i> sistem otentikasi
-      tingkat enterprise. Firestore Security Rules pada setup dasar mengizinkan siapapun membaca dan menulis ke
-      basis data — seseorang yang cukup paham teknis (lewat DevTools browser) berpotensi menulis data tanpa melalui
-      PIN ini. Untuk kebutuhan kontrol akses yang lebih ketat, perlu ditambahkan Firebase Authentication dan
-      Security Rules yang lebih ketat di sisi Firebase Console — di luar cakupan berkas ini.</p>
+      <p><b>Soal keamanan:</b> mulai versi 2.0, tabel referensi hanya dapat <i>dibaca</i> oleh umum. Perubahan hanya
+      diterima dari akun Google admin yang terdaftar di Firestore Rules; pemeriksaan ini dilakukan di server Firebase,
+      bukan di tampilan, sehingga tidak dapat dilewati lewat DevTools. Riwayat hitungan tetap tersimpan di browser
+      masing-masing pengguna dan tidak dikirim ke server.</p>
     </div>
   </section>
 
@@ -1043,9 +904,7 @@ code.k{background:#eef2f6;padding:1px 5px;border-radius:4px;font-size:12px}
 
 
 
-
 <script>
-
 
 
 /* ============================================================
@@ -1135,39 +994,6 @@ async function storageSet(key, value, shared){
   catch(e){ return false; }
 }
 
-async function storageDelete(key, shared){
-  if(shared && FIREBASE_CONFIGURED){
-    const db = getFirestoreDb();
-    if(db){
-      try{ await db.collection(FS_COLLECTION).doc(key).delete(); return true; }
-      catch(e){ console.warn('Firestore delete error:', e); return false; }
-    }
-  }
-  try{ localStorage.removeItem((shared?'shared__':'')+key); return true; }catch(e){ return false; }
-}
-// Daftar dokumen berawalan tertentu (urut menurut nama dokumen), maksimal `limit` dokumen.
-async function storageListPrefix(prefix, shared, limit){
-  const out = [];
-  if(shared && FIREBASE_CONFIGURED){
-    const db = getFirestoreDb();
-    if(db){
-      try{
-        const fp = firebase.firestore.FieldPath.documentId();
-        const snap = await db.collection(FS_COLLECTION).orderBy(fp).startAt(prefix).endAt(prefix+'\uf8ff').limit(limit||500).get();
-        snap.forEach(d => out.push({ key: d.id, value: d.data().value }));
-        return out;
-      }catch(e){ console.warn('Firestore list error:', e); return out; }
-    }
-  }
-  try{
-    const pre = (shared?'shared__':'')+prefix;
-    const keys = [];
-    for(let i=0;i<localStorage.length;i++){ const k = localStorage.key(i); if(k && k.startsWith(pre)) keys.push(k); }
-    keys.sort().slice(0, limit||500).forEach(k => out.push({ key: k.slice(shared?8:0), value: localStorage.getItem(k) }));
-  }catch(e){}
-  return out;
-}
-
 function mergeConfig(loaded, defaults){
   // Menambal konfigurasi yang tersimpan (mungkin dari versi lama) dengan field baru
   // dari DEFAULT_CONFIG yang belum ada di data lama, supaya kode tidak crash saat
@@ -1215,7 +1041,14 @@ async function loadConfig(){
   }catch(e){ console.warn(e); }
   return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 }
-async function saveConfig(cfg){ await storageSet(CONFIG_KEY, JSON.stringify(cfg), true); }
+async function saveConfig(cfg){
+  const ok = await storageSet(CONFIG_KEY, JSON.stringify(cfg), true);
+  if(!ok){
+    toast('⚠️ Perubahan GAGAL disimpan ke server. Pastikan Anda masuk dengan akun admin dan koneksi internet stabil, lalu simpan lagi.');
+    window._simpanGagalAt = Date.now();   // cegah pesan "tersimpan" dari pemanggil menimpa peringatan ini
+  }
+  return ok;
+}
 async function loadHistory(){
   try{
     const raw = await storageGet(HISTORY_KEY, false);
@@ -1225,31 +1058,57 @@ async function loadHistory(){
 }
 async function saveHistory(list){ await storageSet(HISTORY_KEY, JSON.stringify(list), false); }
 
-async function getAdminPin(){
-  let pin = await storageGet(PIN_KEY, true);
-  if(!pin){ pin = DEFAULT_PIN; await storageSet(PIN_KEY, pin, true); }
-  return pin;
+/* ---- Akses admin (v2.0) ----
+   Mode Terpusat: masuk dengan akun Google; hak admin ditentukan Firestore Rules
+   (dokumen akk_admin/cek hanya bisa dibaca admin). PIN hanya dipakai di Mode Lokal. */
+let ADMIN_EMAIL = null;
+function fbAuth(){
+  if(!getFirestoreDb()) return null;
+  try{ return (firebase.auth ? firebase.auth() : null); }catch(e){ return null; }
+}
+async function penggunaFirebase(auth){
+  if(auth.currentUser) return auth.currentUser;
+  return await new Promise(res=>{ const off = auth.onAuthStateChanged(u=>{ off(); res(u); }); });
+}
+async function cekHakAdmin(){
+  try{ await getFirestoreDb().collection('akk_admin').doc('cek').get(); return true; }
+  catch(e){ return false; }
+}
+function tampilAkunAdmin(){
+  const el = document.getElementById('akunAdminInfo');
+  if(el) el.textContent = ADMIN_EMAIL ? ('Masuk sebagai ' + ADMIN_EMAIL + '.') : 'Belum masuk.';
 }
 async function ensureAdminAccess(){
+  if(FIREBASE_CONFIGURED){
+    const auth = fbAuth();
+    if(!auth){ toast('Layanan masuk Firebase belum termuat. Muat ulang halaman lalu coba lagi.'); return false; }
+    let u = await penggunaFirebase(auth);
+    if(!u){
+      if(!confirm('Panel ini khusus Admin.\nMasuk dengan akun Google admin?')) return false;
+      try{ u = (await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())).user; }
+      catch(e){ if(e && e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') toast('Gagal masuk: ' + (e.code || e.message)); return false; }
+    }
+    if(await cekHakAdmin()){ ADMIN_EMAIL = u.email; tampilAkunAdmin(); return true; }
+    toast('Akun ' + u.email + ' tidak terdaftar sebagai admin kalkulator.');
+    try{ await auth.signOut(); }catch(e){}
+    return false;
+  }
+  // Mode Lokal (tanpa Firebase): penghalang sederhana per-browser
   if(sessionStorage.getItem('akk_admin_authed') === '1') return true;
-  const pin = await getAdminPin();
-  const input = prompt('Panel ini khusus Admin.\nMasukkan PIN Admin:');
+  let pin = localStorage.getItem('shared__' + PIN_KEY) || DEFAULT_PIN;
+  const input = prompt('Panel ini khusus Admin (Mode Lokal).\nMasukkan PIN Admin:');
   if(input === null) return false;
   if(input === pin){ sessionStorage.setItem('akk_admin_authed','1'); return true; }
-  alert('PIN salah. Coba lagi atau hubungi admin lain untuk PIN yang benar.');
+  alert('PIN salah.');
   return false;
 }
-async function changeAdminPin(){
-  const cur = document.getElementById('pin_current').value;
-  const baru = document.getElementById('pin_baru').value;
-  const konfirmasi = document.getElementById('pin_konfirmasi').value;
-  const pinNow = await getAdminPin();
-  if(cur !== pinNow){ toast('PIN saat ini salah.'); return; }
-  if(!baru || baru.length < 4){ toast('PIN baru minimal 4 karakter.'); return; }
-  if(baru !== konfirmasi){ toast('Konfirmasi PIN baru tidak cocok.'); return; }
-  await storageSet(PIN_KEY, baru, true);
-  toast('PIN Admin berhasil diubah untuk semua pengguna.');
-  ['pin_current','pin_baru','pin_konfirmasi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+async function keluarAdmin(){
+  sessionStorage.removeItem('akk_admin_authed');
+  const auth = FIREBASE_CONFIGURED ? fbAuth() : null;
+  if(auth){ try{ await auth.signOut(); }catch(e){} }
+  ADMIN_EMAIL = null; tampilAkunAdmin();
+  setActiveTab('kalkulator');
+  toast('Anda sudah keluar dari akun admin.');
 }
 
 let CFG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -1926,12 +1785,11 @@ function escapeHtml(s){
 const AI_WORKER_URL = "https://kalkulator-ak-proxy.whisnudataanalis.workers.dev";
 
 // Sekali panggil ke Worker. Melempar Error kalau gagal (dipakai oleh mekanisme coba-ulang di bawah).
-async function panggilAIWorkerSekali(arg){
-  const payload = (typeof arg === 'string') ? { message: arg } : arg;
+async function panggilAIWorkerSekali(deskripsi){
   const response = await fetch(AI_WORKER_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ message: deskripsi })
   });
   const data = await response.json();
   if(!response.ok || data.error){
@@ -2437,20 +2295,12 @@ function hitung(){
 async function simpanRiwayat(){
   if(!window._lastResult){ toast("Hitung terlebih dahulu sebelum menyimpan."); return; }
   const res = window._lastResult;
-  const i = res.input;
-  // Tahun Konversi: ringkasan rentang tahun kalender (mis. "2020-2021", atau cuma "2021" kalau satu tahun)
-  const tahunKonversi = (i.tmtTahun && i.sampaiTahun)
-    ? (i.tmtTahun === i.sampaiTahun ? String(i.sampaiTahun) : `${i.tmtTahun}-${i.sampaiTahun}`)
-    : null;
   HISTORY.unshift({
     id: Date.now(),
     tanggalSimpan: new Date().toISOString(),
     input: res.input,
     totalAK: res.totalAK,
-    status: res.statusHitung,
-    periodeKonversi: res.derived?.periodeText || null,
-    totalBulanKonversi: res.derived?.BF ?? null,
-    tahunKonversi
+    status: res.statusHitung
   });
   await saveHistory(HISTORY);
   toast("Tersimpan ke Riwayat.");
@@ -2472,7 +2322,7 @@ function resetForm(){
 function renderHistory(){
   const tbody = document.getElementById('historyBody');
   if(!HISTORY.length){
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">Belum ada data tersimpan.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Belum ada data tersimpan.</td></tr>`;
     return;
   }
   tbody.innerHTML = HISTORY.map((h,idx)=>`
@@ -2482,8 +2332,6 @@ function renderHistory(){
       <td>${escapeHtml(h.input.jenisPengangkatan)}</td>
       <td>${escapeHtml(h.input.jabatanSaatIni)} → ${escapeHtml(h.input.jenjangDituju)}</td>
       <td>${escapeHtml(h.input.golonganSaatIni)}</td>
-      <td>${escapeHtml(h.tahunKonversi || '-')}</td>
-      <td>${escapeHtml(h.periodeKonversi || '-')}${h.totalBulanKonversi!=null ? ` <span class="small-muted">(${h.totalBulanKonversi} bln)</span>` : ''}</td>
       <td style="text-align:right;font-weight:700">${h.totalAK!=null? fmt(h.totalAK): '-'}</td>
       <td><button class="btn small danger" onclick="event.stopPropagation();hapusRiwayat(${idx})">Hapus</button></td>
     </tr>
@@ -2526,8 +2374,8 @@ async function hapusRiwayat(idx){
 }
 function exportHistoryCSV(){
   if(!HISTORY.length){ toast("Riwayat kosong."); return; }
-  const header = ["Nama","Jenis Pengangkatan","Jabatan Saat Ini","Jenjang Dituju","Golongan","Tahun Konversi","Periode Konversi","Total Bulan Konversi","Total AK","Status"];
-  const rows = HISTORY.map(h=>[h.input.nama,h.input.jenisPengangkatan,h.input.jabatanSaatIni,h.input.jenjangDituju,h.input.golonganSaatIni,h.tahunKonversi,h.periodeKonversi,h.totalBulanKonversi,h.totalAK,h.status]);
+  const header = ["Nama","Jenis Pengangkatan","Jabatan Saat Ini","Jenjang Dituju","Golongan","Total AK","Status"];
+  const rows = HISTORY.map(h=>[h.input.nama,h.input.jenisPengangkatan,h.input.jabatanSaatIni,h.input.jenjangDituju,h.input.golonganSaatIni,h.totalAK,h.status]);
   let csv = header.join(";")+"\n"+rows.map(r=>r.map(v=>`"${(v??'').toString().replace(/"/g,'""')}"`).join(";")).join("\n");
   downloadFile("riwayat-angka-kredit.csv", csv, "text/csv;charset=utf-8;");
 }
@@ -2865,7 +2713,7 @@ function importConfigFile(evt){
       renderCustomRules();
       toast("Konfigurasi berhasil diimpor.");
     }catch(err){
-      alert("Gagal membaca file JSON: "+err.message);
+      alert("Gagal mengimpor konfigurasi: "+err.message);
     }
   };
   reader.readAsText(file);
@@ -3374,6 +3222,7 @@ function updatePredikatSumCheck(BF){
 
 /* ---------------- UI HELPERS ---------------- */
 function toast(msg){
+  if(window._simpanGagalAt && Date.now() - window._simpanGagalAt < 2000 && !String(msg).startsWith('⚠️')) return;
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
@@ -3504,10 +3353,8 @@ async function initApp(){
     document.querySelectorAll('nav.tabs button').forEach(b=>{
       b.addEventListener('click', async ()=>{
         const tab = b.dataset.tab;
-        if((tab === 'referensi' || tab === 'aturan' || tab === 'tanyaAdmin') && !(await ensureAdminAccess())) return;
+        if((tab === 'referensi' || tab === 'aturan') && !(await ensureAdminAccess())) return;
         setActiveTab(tab);
-        if(tab === 'tanya') tjTampilPublik();
-        if(tab === 'tanyaAdmin') tjAdminRender(true);
       });
     });
   } catch(e){
@@ -3539,371 +3386,8 @@ function initDisclaimerModal(){
   });
 }
 
-
-/* ================= TANYA JAWAB PEMBINAAN JF =================
-   Pengguna bertanya -> (1) cocokkan dengan FAQ resmi, (2) bila tidak ada, cari kutipan bahan yang relevan
-   di peramban, (3) kirim hanya kutipan itu + pertanyaan ke Worker AI, (4) tampilkan jawaban langsung.
-   Admin mengelola bahan, FAQ, dan meninjau log pertanyaan. Data di Firestore (koleksi bersama). */
-const TJ_DEFAULT_SET = {
-  enabled: true, sumber: 'drive', gaya: 'natural', instruksi: '', maxPerJam: 10, topK: 8,
-  pembuka: 'Tuliskan pertanyaan Anda seputar pembinaan Jabatan Fungsional. Jawaban langsung tampil, disusun dari bahan pembinaan yang disiapkan admin.',
-  kontak: ''
-};
-const TJ_STOP = new Set('yang dan di ke dari untuk dengan pada adalah itu ini atau apa bagaimana apakah saya kami kita anda ada tidak dalam akan bisa dapat oleh sebagai juga serta agar jika bila mana kapan siapa berapa seperti sudah telah harus para dalam bagi masih lebih sangat'.split(' '));
-let TJ_CACHE = null;
-let TJ_LAST = null;       // {logId, tanya}
-let TJ_ADMIN = { mats: [], faqs: [], logs: [], editMat: null, editFaq: null };
-
-function tjParse(raw, fallback){ try{ return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; } }
-function tjTokens(t){
-  return String(t||'').toLowerCase().replace(/[^a-z0-9\s\/]/g,' ').split(/\s+/)
-    .map(w => w.replace(/nya$/,'')).filter(w => w.length > 2 && !TJ_STOP.has(w));
-}
-function tjRender(text){
-  const lines = escapeHtml(String(text||'')).split('\n');
-  const inl = x => x.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
-  let html = '', inList = false;
-  lines.forEach(l => {
-    const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)$/);
-    if(m){ if(!inList){ html += '<ul>'; inList = true; } html += '<li>'+inl(m[1])+'</li>'; }
-    else { if(inList){ html += '</ul>'; inList = false; } if(l.trim()) html += '<p>'+inl(l)+'</p>'; }
-  });
-  if(inList) html += '</ul>';
-  return html;
-}
-function tjPecah(judul, teks){
-  const paras = String(teks||'').split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
-  const out = []; let buf = '', heading = '';
-  const flush = () => { if(buf){ out.push({ judul, teks: buf }); buf = ''; } };
-  paras.forEach(p => {
-    if(/^#{1,4}\s/.test(p)) heading = p.split('\n')[0];
-    if(buf && buf.length + p.length > 1100) flush();
-    if(!buf && heading && !/^#{1,4}\s/.test(p)) buf = heading + '\n';
-    buf += (buf && !buf.endsWith('\n') ? '\n\n' : '') + p;
-    while(buf.length > 2200){ out.push({ judul, teks: buf.slice(0,1800) }); buf = (heading ? heading + '\n' : '') + buf.slice(1800); }
-  });
-  flush();
-  return out;
-}
-function tjPilih(q, chunks, k){
-  const qt = [...new Set(tjTokens(q))];
-  if(!qt.length || !chunks.length) return [];
-  const toks = chunks.map(c => tjTokens(c.judul + ' ' + c.teks));
-  const df = {}; toks.forEach(ts => new Set(ts).forEach(w => { df[w] = (df[w]||0) + 1; }));
-  const N = chunks.length;
-  return chunks.map((c,i) => {
-    const tf = {}; toks[i].forEach(w => { tf[w] = (tf[w]||0) + 1; });
-    let sc = 0; qt.forEach(w => { if(tf[w]) sc += (1 + Math.log(tf[w])) * Math.log(1 + N/(df[w]||1)); });
-    return { c, sc };
-  }).filter(x => x.sc > 0).sort((a,b) => b.sc - a.sc).slice(0, k).map(x => x.c);
-}
-function tjJaccard(a, b){
-  const A = new Set(tjTokens(a)), B = new Set(tjTokens(b));
-  if(!A.size || !B.size) return 0;
-  let inter = 0; A.forEach(w => { if(B.has(w)) inter++; });
-  return inter / (A.size + B.size - inter);
-}
-async function tjMuatData(force){
-  if(!force && TJ_CACHE && Date.now() - TJ_CACHE.t < 120000) return TJ_CACHE;
-  const [setRaw, matRows, faqRows] = await Promise.all([
-    storageGet('tj_set', true), storageListPrefix('tj_mat_', true, 200), storageListPrefix('tj_faq_', true, 300)
-  ]);
-  const set = Object.assign({}, TJ_DEFAULT_SET, tjParse(setRaw, {}));
-  const mats = matRows.map(r => tjParse(r.value, null)).filter(Boolean);
-  const faqs = faqRows.map(r => tjParse(r.value, null)).filter(Boolean);
-  TJ_CACHE = { t: Date.now(), set, mats, faqs };
-  return TJ_CACHE;
-}
-function tjBatasPerJam(max){
-  let hits = [];
-  try{ hits = JSON.parse(localStorage.getItem('tj_hits') || '[]'); }catch(e){}
-  const cut = Date.now() - 3600000;
-  hits = hits.filter(t => t > cut);
-  if(hits.length >= max) return false;
-  hits.push(Date.now());
-  try{ localStorage.setItem('tj_hits', JSON.stringify(hits)); }catch(e){}
-  return true;
-}
-// Inti: kembalikan {tipe:'faq'|'ai'|'kosong', jawab, sumber:[]}. Dipakai pengguna dan admin (draf FAQ).
-async function tjJawab(tanya, opsi){
-  opsi = opsi || {};
-  const d = await tjMuatData(!!opsi.segar);
-  if(!opsi.lewatiFaq){
-    let best = null, bestSc = 0;
-    d.faqs.forEach(f => { const sc = tjJaccard(tanya, f.tanya); if(sc > bestSc){ bestSc = sc; best = f; } });
-    if(best && bestSc >= 0.6) return { tipe: 'faq', jawab: best.jawab, sumber: [] };
-  }
-  const PESAN_KOSONG = 'Maaf, saya belum menemukan bahan pembinaan yang membahas pertanyaan ini. Coba tulis ulang dengan kata kunci lain, atau hubungi Instansi Pembina JF / admin untuk memastikan.';
-  const topK = Math.min(14, Math.max(2, Number(d.set.topK) || 8));
-  if(d.set.sumber !== 'unggahan'){
-    // Sumber Google Drive: Worker membaca folder lewat jembatan Apps Script, memilih kutipan, lalu menjawab.
-    const data = await panggilAIWorkerDenganCobaUlang({
-      mode: 'tanya', sumber: 'drive', question: tanya, gaya: d.set.gaya, instruksi: d.set.instruksi, topK
-    });
-    if(data.kosong) return { tipe: 'kosong', jawab: PESAN_KOSONG, sumber: [] };
-    const t = String(data.text || '').trim();
-    if(!t) throw new Error('AI tidak mengembalikan jawaban. Coba lagi.');
-    return { tipe: 'ai', jawab: t, sumber: data.sumber || [] };
-  }
-  const chunks = [];
-  d.mats.filter(m => m.aktif !== false).forEach(m => tjPecah(m.judul, m.isi).forEach(c => chunks.push(c)));
-  const pilih = tjPilih(tanya, chunks, topK);
-  if(!pilih.length){
-    return { tipe: 'kosong', jawab: PESAN_KOSONG, sumber: [] };
-  }
-  const data = await panggilAIWorkerDenganCobaUlang({
-    mode: 'tanya', question: tanya, gaya: d.set.gaya, instruksi: d.set.instruksi,
-    passages: pilih.map(c => ({ judul: c.judul, teks: c.teks }))
-  });
-  let txt = String(data.text || '').trim();
-  if(!txt) throw new Error('AI tidak mengembalikan jawaban. Coba lagi.');
-  let sumber = [];
-  const m = txt.match(/\n?\s*SUMBER:\s*([0-9,\s-]+)\s*$/i);
-  if(m){
-    txt = txt.slice(0, m.index).trim();
-    m[1].split(',').map(x => parseInt(x,10)).filter(n => n >= 1 && n <= pilih.length).forEach(n => {
-      const j = pilih[n-1].judul; if(!sumber.includes(j)) sumber.push(j);
-    });
-  }
-  return { tipe: 'ai', jawab: txt, sumber };
-}
-async function tjCatat(entry){
-  const id = 'tj_log_' + String(9e12 - Date.now()).padStart(13,'0') + '_' + Math.random().toString(36).slice(2,6);
-  entry.id = id;
-  await storageSet(id, JSON.stringify(entry), true);
-  return id;
-}
-
-/* ---------- sisi pengguna ---------- */
-async function tjTampilPublik(){
-  const d = await tjMuatData(false);
-  document.getElementById('tj_pembuka').textContent = d.set.pembuka || TJ_DEFAULT_SET.pembuka;
-  const btn = document.getElementById('tj_btn');
-  const off = d.set.enabled === false || d.set.enabled === '0';
-  btn.disabled = off;
-  document.getElementById('tj_hitung').textContent = off ? 'Fitur Tanya Jawab sedang dinonaktifkan admin.' : '';
-  const kontakEl = document.getElementById('tj_kontak');
-  if(kontakEl) kontakEl.textContent = d.set.kontak ? 'Kontak: ' + d.set.kontak : '';
-  const card = document.getElementById('tj_faqCard'), list = document.getElementById('tj_faqList');
-  if(d.faqs.length){
-    card.style.display = 'block';
-    list.innerHTML = d.faqs.map(f => `<details><summary>${escapeHtml(f.tanya)}</summary><div class="tj-answer" style="margin-top:8px">${tjRender(f.jawab)}</div></details>`).join('');
-  } else card.style.display = 'none';
-}
-async function tjTanya(){
-  const q = (document.getElementById('tj_q').value || '').trim();
-  const status = document.getElementById('tj_status');
-  if(q.length < 8){ toast('Tulis pertanyaan dengan lebih lengkap (minimal 8 karakter).'); return; }
-  const d = await tjMuatData(false);
-  if(!tjBatasPerJam(Math.max(1, Number(d.set.maxPerJam) || 10))){
-    toast('Batas pertanyaan per jam tercapai. Silakan coba lagi nanti.'); return;
-  }
-  const btn = document.getElementById('tj_btn');
-  btn.disabled = true;
-  status.style.display = 'block';
-  status.innerHTML = '<div class="ai-loading">⏳ Mencari jawaban dari bahan pembinaan...</div>';
-  document.getElementById('tj_jawabCard').style.display = 'none';
-  try{
-    const r = await tjJawab(q);
-    status.style.display = 'none';
-    const badge = document.getElementById('tj_badge');
-    badge.className = 'tj-badge' + (r.tipe === 'faq' ? ' faq' : '');
-    badge.textContent = r.tipe === 'faq' ? 'Jawaban resmi (FAQ)' : (r.tipe === 'ai' ? 'Dijawab otomatis dari bahan pembinaan JF' : 'Belum ada bahan yang relevan');
-    document.getElementById('tj_jawab').innerHTML = tjRender(r.jawab);
-    document.getElementById('tj_sumber').textContent = r.sumber.length ? 'Sumber bahan: ' + r.sumber.join('; ') : '';
-    document.getElementById('tj_fbWrap').style.display = r.tipe === 'kosong' ? 'none' : 'flex';
-    document.getElementById('tj_jawabCard').style.display = 'block';
-    const id = await tjCatat({ waktu: new Date().toISOString(), tanya: q, jawab: r.jawab, tipe: r.tipe, sumber: r.sumber, feedback: null });
-    TJ_LAST = { id, tanya: q };
-  }catch(err){
-    status.innerHTML = `<div class="ai-summary" style="color:#8a3a2b">⚠ Gagal menjawab: ${escapeHtml(err.message)}. Silakan coba lagi sebentar lagi.</div>`;
-  }finally{
-    btn.disabled = false;
-  }
-}
-async function tjFeedback(val){
-  if(!TJ_LAST) return;
-  const raw = await storageGet(TJ_LAST.id, true);
-  const e = tjParse(raw, null);
-  if(e){ e.feedback = val; await storageSet(TJ_LAST.id, JSON.stringify(e), true); }
-  document.getElementById('tj_fbWrap').innerHTML = '<span class="small-muted">Terima kasih atas masukan Anda.</span>';
-}
-
-/* ---------- sisi admin ---------- */
-async function tjAdminRender(segar){
-  const d = await tjMuatData(!!segar);
-  TJ_ADMIN.mats = d.mats; TJ_ADMIN.faqs = d.faqs;
-  const logRows = await storageListPrefix('tj_log_', true, 150);
-  TJ_ADMIN.logs = logRows.map(r => tjParse(r.value, null)).filter(Boolean);
-  const s = d.set;
-  document.getElementById('tjs_enabled').value = (s.enabled === false || s.enabled === '0') ? '0' : '1';
-  document.getElementById('tjs_sumber').value = s.sumber === 'unggahan' ? 'unggahan' : 'drive';
-  document.getElementById('tjs_gaya').value = s.gaya || 'natural';
-  document.getElementById('tjs_maxPerJam').value = s.maxPerJam;
-  document.getElementById('tjs_topK').value = s.topK;
-  document.getElementById('tjs_pembuka').value = s.pembuka || '';
-  document.getElementById('tjs_kontak').value = s.kontak || '';
-  document.getElementById('tjs_instruksi').value = s.instruksi || '';
-
-  document.getElementById('tjm_list').innerHTML = d.mats.length ? d.mats.map(m => `
-    <tr><td>${escapeHtml(m.judul)}</td><td>${(m.isi||'').length.toLocaleString('id-ID')}</td>
-    <td><input type="checkbox" ${m.aktif !== false ? 'checked' : ''} onchange="tjToggleBahan('${m.id}', this.checked)"></td>
-    <td><button class="btn small secondary" onclick="tjEditBahan('${m.id}')">Edit</button>
-    <button class="btn small danger" onclick="tjHapusBahan('${m.id}')">Hapus</button></td></tr>`).join('')
-    : '<tr><td colspan="4" class="small-muted" style="padding:14px">Belum ada bahan. Tambahkan di bawah.</td></tr>';
-
-  document.getElementById('tjf_list').innerHTML = d.faqs.length ? d.faqs.map(f => `
-    <tr><td>${escapeHtml(f.tanya)}</td><td>
-    <button class="btn small secondary" onclick="tjEditFaq('${f.id}')">Edit</button>
-    <button class="btn small danger" onclick="tjHapusFaq('${f.id}')">Hapus</button></td></tr>`).join('')
-    : '<tr><td colspan="2" class="small-muted" style="padding:14px">Belum ada FAQ.</td></tr>';
-
-  const jenisLabel = { faq: 'FAQ', ai: 'AI', kosong: 'kosong' };
-  document.getElementById('tjl_list').innerHTML = TJ_ADMIN.logs.length ? TJ_ADMIN.logs.map((l,i) => `
-    <tr><td style="white-space:nowrap">${escapeHtml(new Date(l.waktu).toLocaleString('id-ID'))}</td>
-    <td>${escapeHtml((l.tanya||'').slice(0,140))}</td><td>${jenisLabel[l.tipe]||''}</td>
-    <td>${l.feedback === 'ya' ? '👍' : l.feedback === 'tidak' ? '👎' : '-'}</td>
-    <td style="white-space:nowrap"><button class="btn small secondary" onclick="tjLogKeFaq(${i})">Jadikan FAQ</button>
-    <button class="btn small danger" onclick="tjHapusLog(${i})">Hapus</button></td></tr>`).join('')
-    : '<tr><td colspan="5" class="small-muted" style="padding:14px">Belum ada pertanyaan masuk.</td></tr>';
-}
-async function tjCekDrive(){
-  const out = document.getElementById('tjd_hasil'), btn = document.getElementById('tjd_btn');
-  btn.disabled = true; out.textContent = '⏳ Membaca folder Drive...';
-  try{
-    const data = await panggilAIWorkerSekali({ mode: 'bahan' });
-    const total = data.dokumen.reduce((a,x) => a + x.karakter, 0);
-    out.innerHTML = `<b>Terbaca ${data.dokumen.length} dokumen</b> (${total.toLocaleString('id-ID')} karakter).<br>` +
-      (data.dokumen.length ? data.dokumen.map(x => `• ${escapeHtml(x.judul)} (${x.karakter.toLocaleString('id-ID')} karakter)`).join('<br>') : 'Folder kosong atau tidak berisi berkas yang didukung.') +
-      (data.dilewati && data.dilewati.length ? `<br><br><b>Dilewati:</b><br>` + data.dilewati.map(x => '• ' + escapeHtml(x)).join('<br>') : '');
-  }catch(err){
-    out.innerHTML = `<span style="color:#8a3a2b">⚠ ${escapeHtml(err.message)}</span>`;
-  }finally{ btn.disabled = false; }
-}
-async function tjSimpanPengaturan(){
-  const set = {
-    enabled: document.getElementById('tjs_enabled').value === '1',
-    sumber: document.getElementById('tjs_sumber').value,
-    gaya: document.getElementById('tjs_gaya').value,
-    maxPerJam: Math.max(1, parseInt(document.getElementById('tjs_maxPerJam').value, 10) || 10),
-    topK: Math.min(14, Math.max(2, parseInt(document.getElementById('tjs_topK').value, 10) || 8)),
-    pembuka: document.getElementById('tjs_pembuka').value.trim(),
-    kontak: document.getElementById('tjs_kontak').value.trim(),
-    instruksi: document.getElementById('tjs_instruksi').value.trim().slice(0, 1500)
-  };
-  const ok = await storageSet('tj_set', JSON.stringify(set), true);
-  TJ_CACHE = null;
-  toast(ok ? 'Pengaturan tersimpan.' : 'Gagal menyimpan pengaturan.');
-}
-function tjMuatBerkas(input){
-  const f = input.files && input.files[0];
-  if(!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    document.getElementById('tjm_isi').value = String(rd.result || '');
-    if(!document.getElementById('tjm_judul').value) document.getElementById('tjm_judul').value = f.name.replace(/\.[^.]+$/, '');
-  };
-  rd.readAsText(f, 'utf-8');
-}
-async function tjSimpanBahan(){
-  const judul = document.getElementById('tjm_judul').value.trim();
-  const isi = document.getElementById('tjm_isi').value.trim();
-  if(!judul || !isi){ toast('Judul dan isi bahan wajib diisi.'); return; }
-  if(isi.length > 250000){ toast('Isi terlalu panjang (maks. 250.000 karakter). Pecah menjadi beberapa bahan.'); return; }
-  const id = TJ_ADMIN.editMat || ('tj_mat_' + Date.now().toString(36) + Math.random().toString(36).slice(2,5));
-  const lama = TJ_ADMIN.mats.find(m => m.id === id);
-  const ok = await storageSet(id, JSON.stringify({ id, judul, isi, aktif: lama ? lama.aktif !== false : true, updated: Date.now() }), true);
-  TJ_ADMIN.editMat = null; TJ_CACHE = null;
-  tjBatalBahan();
-  toast(ok ? 'Bahan tersimpan.' : 'Gagal menyimpan bahan (mungkin terlalu besar).');
-  tjAdminRender(true);
-}
-function tjBatalBahan(){
-  TJ_ADMIN.editMat = null;
-  ['tjm_judul','tjm_isi'].forEach(id => { document.getElementById(id).value = ''; });
-  document.getElementById('tjm_file').value = '';
-}
-function tjEditBahan(id){
-  const m = TJ_ADMIN.mats.find(x => x.id === id); if(!m) return;
-  TJ_ADMIN.editMat = id;
-  document.getElementById('tjm_judul').value = m.judul;
-  document.getElementById('tjm_isi').value = m.isi;
-  document.getElementById('tjm_judul').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-async function tjToggleBahan(id, aktif){
-  const m = TJ_ADMIN.mats.find(x => x.id === id); if(!m) return;
-  m.aktif = aktif;
-  await storageSet(id, JSON.stringify(m), true);
-  TJ_CACHE = null;
-}
-async function tjHapusBahan(id){
-  if(!confirm('Hapus bahan ini?')) return;
-  await storageDelete(id, true); TJ_CACHE = null; tjAdminRender(true);
-}
-async function tjSimpanFaq(){
-  const tanya = document.getElementById('tjf_tanya').value.trim();
-  const jawab = document.getElementById('tjf_jawab').value.trim();
-  if(!tanya || !jawab){ toast('Pertanyaan dan jawaban wajib diisi.'); return; }
-  const id = TJ_ADMIN.editFaq || ('tj_faq_' + Date.now().toString(36) + Math.random().toString(36).slice(2,5));
-  const ok = await storageSet(id, JSON.stringify({ id, tanya, jawab, updated: Date.now() }), true);
-  TJ_CACHE = null; tjBatalFaq();
-  toast(ok ? 'FAQ tersimpan.' : 'Gagal menyimpan FAQ.');
-  tjAdminRender(true);
-}
-function tjBatalFaq(){
-  TJ_ADMIN.editFaq = null;
-  ['tjf_tanya','tjf_jawab'].forEach(id => { document.getElementById(id).value = ''; });
-  document.getElementById('tjf_status').textContent = '';
-}
-function tjEditFaq(id){
-  const f = TJ_ADMIN.faqs.find(x => x.id === id); if(!f) return;
-  TJ_ADMIN.editFaq = id;
-  document.getElementById('tjf_tanya').value = f.tanya;
-  document.getElementById('tjf_jawab').value = f.jawab;
-  document.getElementById('tjf_tanya').scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-async function tjHapusFaq(id){
-  if(!confirm('Hapus FAQ ini?')) return;
-  await storageDelete(id, true); TJ_CACHE = null; tjAdminRender(true);
-}
-async function tjDraftFaq(){
-  const tanya = document.getElementById('tjf_tanya').value.trim();
-  const st = document.getElementById('tjf_status');
-  if(tanya.length < 8){ toast('Tulis pertanyaannya dulu.'); return; }
-  const btn = document.getElementById('tjf_draftBtn');
-  btn.disabled = true; st.textContent = '⏳ AI menyusun draf dari bahan...';
-  try{
-    const r = await tjJawab(tanya, { lewatiFaq: true, segar: true });
-    document.getElementById('tjf_jawab').value = r.jawab;
-    st.textContent = r.tipe === 'ai'
-      ? 'Draf siap. Periksa dan sunting sebelum disimpan.' + (r.sumber.length ? ' Sumber: ' + r.sumber.join('; ') : '')
-      : 'Tidak ditemukan bahan yang relevan; tambahkan bahan dulu atau tulis jawaban sendiri.';
-  }catch(err){ st.textContent = '⚠ ' + err.message; }
-  finally{ btn.disabled = false; }
-}
-function tjLogKeFaq(i){
-  const l = TJ_ADMIN.logs[i]; if(!l) return;
-  TJ_ADMIN.editFaq = null;
-  document.getElementById('tjf_tanya').value = l.tanya;
-  document.getElementById('tjf_jawab').value = l.tipe === 'kosong' ? '' : l.jawab;
-  document.getElementById('tjf_tanya').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  toast('Pertanyaan dimuat ke form FAQ. Sunting jawabannya lalu simpan.');
-}
-async function tjHapusLog(i){
-  const l = TJ_ADMIN.logs[i]; if(!l) return;
-  await storageDelete(l.id, true); tjAdminRender(true);
-}
-function tjEksporLog(){
-  if(!TJ_ADMIN.logs.length){ toast('Belum ada data.'); return; }
-  const header = ['Waktu','Pertanyaan','Jenis','Umpan balik','Jawaban'];
-  const rows = TJ_ADMIN.logs.map(l => [l.waktu, l.tanya, l.tipe, l.feedback || '', l.jawab]);
-  const csv = header.join(';') + '\n' + rows.map(r => r.map(v => `"${(v??'').toString().replace(/"/g,'""')}"`).join(';')).join('\n');
-  downloadFile('pertanyaan-tanya-jawab-jf.csv', csv, 'text/csv;charset=utf-8;');
-}
-
 document.addEventListener('DOMContentLoaded', initApp);
 document.addEventListener('DOMContentLoaded', initDisclaimerModal);
-
 
 
 
