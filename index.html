@@ -3413,6 +3413,34 @@ function ambilSkenarioDariTautan(){
 }
 document.addEventListener('DOMContentLoaded', () => setTimeout(ambilSkenarioDariTautan, 400));
 
+/* v2.2: data yang sudah dibaca Tanya AI Database Pengetahuan (#isi=…) diisikan langsung ke form,
+   tanpa memanggil AI lagi — jadi cepat. Pengguna tinggal memeriksa lalu menekan Hitung. */
+function ambilIsiDariTautan(){
+  const h = location.hash || '';
+  if(!h.startsWith('#isi=')) return;
+  let x = null;
+  try{
+    let b = h.slice(5).replace(/-/g, '+').replace(/_/g, '/'); while(b.length % 4) b += '=';
+    x = JSON.parse(decodeURIComponent(escape(atob(b))));
+  }catch(e){ x = null; }
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  if(!x || typeof x !== 'object') return;
+  const bersih = {};
+  Object.keys(AI_FIELD_LABEL).concat(['catatanKetidakpastian']).forEach(k => { if(x[k] !== undefined) bersih[k] = x[k]; });
+  let coba = 0;
+  const tunggu = () => {
+    const g = document.getElementById('f_golongan');
+    if((!g || g.options.length < 2) && coba++ < 40){ setTimeout(tunggu, 250); return; }
+    setActiveTab('kalkulator');
+    terapkanHasilAI(bersih);
+    const t = document.getElementById('f_nama'); if(t && !t.value) t.value = 'Simulasi dari Tanya AI';
+    const box = document.getElementById('ai_deskripsi'); if(box) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Data dari Tanya AI sudah diisikan. Periksa, lalu tekan Hitung.');
+  };
+  tunggu();
+}
+document.addEventListener('DOMContentLoaded', ambilIsiDariTautan);
+
 
 
 </script>
